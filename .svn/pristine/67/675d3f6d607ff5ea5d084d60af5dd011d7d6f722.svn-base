@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">瘦身1+1</string>
+	<string name="no_network_connection_toast">没有网络连接</string>
+	<string name="back">返   回</string>
+	<!-- For FirstStartActivity -->
+	<string name="act_fs_play">play</string>
+	<string name="act_fs_login">登   陆</string>
+	<!-- For LoginActivity -->
+	<string name="act_login_title">用户登陆</string>
+	<string name="act_login_name">邮箱/用户名</string>
+	<string name="act_login_pwd">密 码</string>
+	<string name="act_login_login">登  陆</string>
+	<string name="act_login_register">注 册</string>
+	<!-- For PersonalHomeActivity -->
+	<string name="act_ph_title">个人主页</string>
+	<string name="act_ph_edit">编 辑</string>
+	<!-- For UserInfoFragment -->
+	<string name="fra_ui_title">基本信息</string>
+	<!-- For MainActivity -->
+	<string name="act_totle_weight">累计瘦身重量</string>
+	<string name="act_totle_cal">今日消耗热量</string>
+</resources>

@@ -1,0 +1,51 @@
+package com.sythealth.fitness;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.sythealth.custom.fragment.HomeOfMineFragment;
+import com.sythealth.custom.fragment.UserInfoFragment;
+import com.sythealth.fitness.util.Utils;
+
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.widget.Button;
+
+public class UserInfoActivity extends BaseActivity {
+	private ViewPager vp;
+	private List<Fragment> fragments = new ArrayList<Fragment>();
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_userinfo);
+		fragments.add(UserInfoFragment.newInstance());
+		fragments.add(UserInfoFragment.newInstance());
+		fragments.add(UserInfoFragment.newInstance());
+		fragments.add(HomeOfMineFragment.newInstance());
+		init();
+		
+	}
+	private void init(){
+		vp = (ViewPager)findViewById(R.id.act_userinfo_viewpager);
+		vp.setAdapter(new MyFragmentAdapter(getSupportFragmentManager()));
+		vp.setCurrentItem(0);
+	}
+	class MyFragmentAdapter extends FragmentPagerAdapter{
+		public MyFragmentAdapter(FragmentManager fm) {
+			super(fm);
+		}
+		@Override
+		public Fragment getItem(int arg0) {			
+			return fragments.get(arg0);
+		}
+		@Override
+		public int getCount() {
+			return fragments.size();
+		}
+		
+	}
+}
+

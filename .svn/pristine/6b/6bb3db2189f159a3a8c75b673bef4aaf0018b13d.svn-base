@@ -1,0 +1,74 @@
+package com.sythealth.custom.fragment;
+
+import com.sythealth.fitness.BaseActivity;
+import com.sythealth.fitness.MyDiaryActivity;
+import com.sythealth.fitness.PersonalHomeActivity;
+import com.sythealth.fitness.R;
+import com.sythealth.fitness.util.Utils;
+
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+public class DiaryInfoFragment extends Fragment {
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+	}
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		View view = inflater.inflate(R.layout.fragment_diaryinfo,container, false);
+		init(view);
+		((MyDiaryActivity)getActivity()).addStep();
+		((MyDiaryActivity)getActivity()).setFragment(this);
+		return view;
+	}
+	private void init(View v){
+		//返回按钮
+		Button backBtn = (Button)v.findViewById(R.id.fra_diaryinfo_back_btn);
+		backBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View v) {		
+				((MyDiaryActivity)getActivity()).decreaseStep();
+				((BaseActivity)getActivity()).backFragment(DiaryInfoFragment.this);	
+			}
+		});
+		//用户图像
+		ImageView iconIv = (ImageView)v.findViewById(R.id.fra_diaryinfo_icon_iv);
+		iconIv.setBackgroundResource(R.drawable.s_logo_shrink);
+		//用户昵称
+		TextView nameTv = (TextView)v.findViewById(R.id.fra_diaryinfo_name_tv);
+		nameTv.setText("孙子");
+		//日记内容
+		TextView valueTv = (TextView)v.findViewById(R.id.fra_diaryinfo_value_tv);
+		valueTv.setText("孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子" +
+				"孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子" +
+				"孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子" +
+				"孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子" +
+				"孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子" +
+				"孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子" +
+				"孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子" +
+				"孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子");
+		//相片
+		ImageView picIv = (ImageView)v.findViewById(R.id.fra_diaryinfo_pic_iv);
+		picIv.setBackgroundResource(R.drawable.s_logo_shrink);
+		//发表日期
+		TextView dateTv = (TextView)v.findViewById(R.id.fra_diaryinfo_date_tv);
+		dateTv.setText("5月16日8:00");
+	}
+	public static DiaryInfoFragment newInstance(){
+		DiaryInfoFragment fragment = new DiaryInfoFragment();
+		Bundle bundle = new Bundle();
+		fragment.setArguments(bundle);
+		return fragment;
+	}
+}

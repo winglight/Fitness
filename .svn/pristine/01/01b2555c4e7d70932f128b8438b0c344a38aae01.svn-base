@@ -1,0 +1,11 @@
+package com.sythealth.fitness;
+
+import android.os.Bundle;
+
+public class BBSActivity extends BaseActivity {
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.act_bbs);
+	}
+}

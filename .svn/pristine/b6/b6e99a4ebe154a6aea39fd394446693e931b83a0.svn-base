@@ -1,0 +1,111 @@
+package com.sythealth.fitness.json.result;
+
+import java.util.Date;
+import java.util.List;
+/**
+ * 朋友战绩记录dto
+ * @author luhao
+ *
+ */
+public class FitFriendWardataDto {
+
+	public static final String TOPWEIGHTDATE_FIELD = "topweightdate";
+	public static final String TOTALWEIGHT_FIELD = "totalweight";
+	public static final String CURRENTWEIGHT_FIELD = "currentweight";
+	public static final String CURRENTPLANWEIGHT_FIELD = "currentplanweight";
+	public static final String LEVEL_FIELD = "level";
+	public static final String MEDAL_FIELD = "medal";
+	public static final String SPORT_FIELD = "sport";
+	public static final String HEIGHT_FIELD = "height";
+	public static final String WEIGHT_FIELD = "weight";
+	
+	Date topweightdate;//最新体重记录日期
+	double totalweight;//累计瘦身数
+	double currentweight;//本期瘦身数
+	double currentplanweight;//本期计划瘦身数
+	int height;//身高
+	List<FitLevelDto> level;//升级记录List
+	List<FitMedalDto> medal;//勋章记录List
+	List<FitSportDto> sport;//运动记录List
+	List<FitWeightDto> weight;//体重记录List
+	public Date getTopweightdate() {
+		return topweightdate;
+	}
+	public void setTopweightdate(Date topweightdate) {
+		this.topweightdate = topweightdate;
+	}
+	public List<FitLevelDto> getLevel() {
+		return level;
+	}
+	public void setLevel(List<FitLevelDto> level) {
+		this.level = level;
+	}
+	public List<FitMedalDto> getMedal() {
+		return medal;
+	}
+	public void setMedal(List<FitMedalDto> medal) {
+		this.medal = medal;
+	}
+	public List<FitSportDto> getSport() {
+		return sport;
+	}
+	public void setSport(List<FitSportDto> sport) {
+		this.sport = sport;
+	}
+	public int getHeight() {
+		return height;
+	}
+	public void setHeight(int height) {
+		this.height = height;
+	}
+	public List<FitWeightDto> getWeight() {
+		return weight;
+	}
+	public void setWeight(List<FitWeightDto> weight) {
+		this.weight = weight;
+	}
+	public double getTotalweight() {
+		return totalweight;
+	}
+	public void setTotalweight(double totalweight) {
+		this.totalweight = totalweight;
+	}
+	public double getCurrentweight() {
+		return currentweight;
+	}
+	public void setCurrentweight(double currentweight) {
+		this.currentweight = currentweight;
+	}
+	public double getCurrentplanweight() {
+		return currentplanweight;
+	}
+	public void setCurrentplanweight(double currentplanweight) {
+		this.currentplanweight = currentplanweight;
+	}
+	public FitFriendWardataDto(Date topweightdate, int totalweight,
+			int currentweight, int currentplanweight, List<FitLevelDto> level,
+			List<FitMedalDto> medal, List<FitSportDto> sport, int height,
+			List<FitWeightDto> weight) {
+		super();
+		this.topweightdate = topweightdate;
+		this.totalweight = totalweight;
+		this.currentweight = currentweight;
+		this.currentplanweight = currentplanweight;
+		this.level = level;
+		this.medal = medal;
+		this.sport = sport;
+		this.height = height;
+		this.weight = weight;
+	}
+	public FitFriendWardataDto() {
+		super();
+	}
+	@Override
+	public String toString() {
+		return "FitFriendWardataDto [topweightdate=" + topweightdate
+				+ ", totalweight=" + totalweight + ", currentweight="
+				+ currentweight + ", currentplanweight=" + currentplanweight
+				+ ", level=" + level + ", medal=" + medal + ", sport=" + sport
+				+ ", height=" + height + ", weight=" + weight + "]";
+	}
+}

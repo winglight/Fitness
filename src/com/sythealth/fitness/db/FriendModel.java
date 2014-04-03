@@ -1,0 +1,104 @@
+package com.sythealth.fitness.db;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+import com.sythealth.fitness.db.enumetype.FriendStatus;
+
+@DatabaseTable(tableName = "FRIEND")
+public class FriendModel implements Serializable {
+
+	public static final String FIELD_SERVERID = "SERVERID";
+	public static final String FIELD_OWNER = "OWNER";
+	public static final String FIELD_NICKNAME = "NICKNAME";
+	public static final String FIELD_STATUS = "STATUS";
+	public final static String FIELD_AVATAR = "AVATAR";
+	public static final String FIELD_ISPARTNER = "ISPARTNER";
+	public static final String FIELD_MESSAGE = "MESSAGE";
+	public static final String FIELD_MODIFIEDAT = "MODIFIEDAT";
+	
+	@DatabaseField(generatedId = true)
+	private long id = -1;
+	@DatabaseField(columnName = FIELD_SERVERID)
+	private String serverId;// ID of server
+	@DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = FIELD_OWNER)
+	private UserModel owner;
+	@DatabaseField(columnName = FIELD_NICKNAME)
+	private String nickName;// nick name
+	@DatabaseField(columnName = FIELD_AVATAR)
+	private String avatar; //file name of the head photo
+	@DatabaseField(columnName = FIELD_STATUS)
+	private FriendStatus status;// 朋友关系状态
+	@DatabaseField(columnName = FIELD_ISPARTNER)
+	private boolean isPartner;// 是否是拍档关系
+	@DatabaseField(columnName = FIELD_MESSAGE)
+	private String message;// 邀请留言
+	@DatabaseField(columnName = FIELD_MODIFIEDAT)
+	private Date modifiedAt;// 邀请日期
+	
+	public FriendModel(){
+		
+	}
+	
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
+	}
+	public String getServerId() {
+		return serverId;
+	}
+	public void setServerId(String serverId) {
+		this.serverId = serverId;
+	}
+	public String getNickName() {
+		return nickName;
+	}
+	public void setNickName(String nickName) {
+		this.nickName = nickName;
+	}
+
+	public FriendStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(FriendStatus status) {
+		this.status = status;
+	}
+
+	public String getAvatar() {
+		return avatar;
+	}
+
+	public void setAvatar(String avatar) {
+		this.avatar = avatar;
+	}
+
+	public boolean isPartner() {
+		return isPartner;
+	}
+
+	public void setPartner(boolean isPartner) {
+		this.isPartner = isPartner;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public Date getModifiedAt() {
+		return modifiedAt;
+	}
+
+	public void setModifiedAt(Date modifiedAt) {
+		this.modifiedAt = modifiedAt;
+	}
+	
+}

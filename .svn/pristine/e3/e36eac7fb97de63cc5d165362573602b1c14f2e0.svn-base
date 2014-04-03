@@ -1,0 +1,53 @@
+package com.sythealth.custom.fragment;
+
+import com.sythealth.fitness.BaseActivity;
+import com.sythealth.fitness.MyDiaryActivity;
+import com.sythealth.fitness.PersonalHomeActivity;
+import com.sythealth.fitness.R;
+import com.sythealth.fitness.util.Utils;
+
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+public class EditDiaryFragment extends Fragment {
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+	}
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		View view = inflater.inflate(R.layout.fragment_editdiary,container, false);
+		init(view);
+		((MyDiaryActivity)getActivity()).addStep();
+		((MyDiaryActivity)getActivity()).setFragment(this);
+		return view;
+	}
+	private void init(View v){
+		//返回按钮
+		Button backBtn = (Button)v.findViewById(R.id.fra_editdiary_back_btn);
+		backBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View v) {		
+				((MyDiaryActivity)getActivity()).decreaseStep();
+				((BaseActivity)getActivity()).backFragment(EditDiaryFragment.this);	
+			}
+		});
+		
+	}
+	public static EditDiaryFragment newInstance(){
+		EditDiaryFragment fragment = new EditDiaryFragment();
+		Bundle bundle = new Bundle();
+		fragment.setArguments(bundle);
+		return fragment;
+	}
+}

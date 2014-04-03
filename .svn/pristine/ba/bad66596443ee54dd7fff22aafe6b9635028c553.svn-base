@@ -1,0 +1,42 @@
+package com.sythealth.fitness.service;
+
+import android.os.Handler;
+import android.os.Message;
+
+import com.sythealth.fitness.db.RemoteInvokeModel;
+import com.sythealth.fitness.db.UserModel;
+import com.sythealth.fitness.json.Return;
+import com.sythealth.fitness.util.AsyncTask;
+
+public class MyTask<T>{
+	private RemoteInvokeModel rim;
+	private Handler handler;
+	
+	public MyTask(Handler handler, RemoteInvokeModel rim){
+		this.handler = handler;
+		this.rim = rim;
+	}
+	
+	public void execute(final ServiceImpl serviceImpl){
+		AsyncTask<String, Void, Return<T>> task = new AsyncTask<String, Void, Return<T>>() {
+		    /** The system calls this to perform work in a worker thread and
+		      * delivers it the parameters given to AsyncTask.execute() */
+		    protected Return<T> doInBackground(String... urls) {
+		    		return serviceImpl.generalQuery(rim);
+		    }
+		    
+		    /** The system calls this to perform work in the UI thread and delivers
+		      * the result from doInBackground() */
+		    protected void onPostExecute(UserModel result) {
+		        if(handler != null){
+		        	Message msg = handler.obtainMessage();
+		        	msg.obj = result;
+		        	handler.sendMessage(msg);
+		        }
+		    }
+		};
+		task.executeOnExecutor(AsyncTask.DUAL_THREAD_EXECUTOR);
+	}
+	
+	
+}

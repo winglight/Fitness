@@ -1,0 +1,313 @@
+package com.sythealth.fitness.service;
+
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
+
+import org.restlet.Client;
+import org.restlet.Context;
+import org.restlet.data.MediaType;
+import org.restlet.data.Protocol;
+import org.restlet.engine.connector.ClientConnectionHelper;
+import org.restlet.ext.json.JsonRepresentation;
+import org.restlet.representation.Representation;
+import org.restlet.resource.ClientResource;
+import org.restlet.resource.ResourceException;
+
+import android.util.Log;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sythealth.fitness.db.RemoteInvokeModel;
+import com.sythealth.fitness.db.UserModel;
+import com.sythealth.fitness.db.enumetype.RemoteRequestAction;
+import com.sythealth.fitness.json.LoginToken;
+import com.sythealth.fitness.json.Return;
+import com.sythealth.fitness.json.ReturnHead;
+import com.sythealth.fitness.json.ReturnString;
+import com.sythealth.fitness.util.Des3Util;
+
+public class RemoteServiceImpl implements IRemoteService {
+
+	private static final String LOG_TAG = "ServiceImpl";
+	public static final String TOKEN_TAG = "$token$";
+	
+	public static int RETURN_CODE_SUCCESS = 0;
+	public static String PRODUCT_NAME = "fit";
+
+	private static IRemoteService service;
+
+	private String base_url;
+	private String tokenId = "";
+	private long tokenExpirationTime;
+	private String sid = "";
+	private ObjectMapper mapper = new ObjectMapper();
+
+	private RemoteServiceImpl(String url) {
+		this.base_url = url;
+	}
+
+	public static IRemoteService getInstance() {
+		if (service == null) {
+
+//			service = new RemoteServiceImpl("http://ws.sythealth.com/ws");
+			 service = new RemoteServiceImpl("http://192.168.0.30:8080/ws");
+		}
+		return service;
+	}
+
+	public boolean isLogin() {
+		return tokenId != null && tokenId.length() > 0 && tokenExpirationTime > new Date().getTime();
+	}
+	
+	private void sureLogin() throws ServiceException{
+		if(!isLogin()){
+				loginDirect(sid);
+		}
+	}
+
+	public <T> MessageModel<T> convert(Return<T> ret) throws ServiceException {
+		if (ret.getHead().getRet() == RETURN_CODE_SUCCESS) {
+			MessageModel<T> msg = new MessageModel<T>();
+			msg.setFlag(true);
+			msg.setMessage(ret.getHead().getMsg());
+			msg.setData(ret.getData());
+
+			return msg;
+		} else {
+			throw new ServiceException(ret.getHead().getRet(), ret.getHead()
+					.getMsg());
+		}
+	}
+
+
+	@Override
+	public UserModel loginDirect(String sid) throws ServiceException {
+		try {
+			ClientResource cr = new ClientResource(base_url
+					+ "/common/user/quicklogin?mobileid=" + sid
+					+ "&desc=ANDROID" + "&product=" + PRODUCT_NAME);
+			// Workaround for GAE servers to prevent chunk encoding
+			// cr.setRequestEntityBuffering(true);
+			// cr.accept();
+			// cr.head(MediaType.APPLICATION_JSON);
+
+			TypeReference type = new TypeReference<Return<LoginToken>>() {
+			};
+
+			String jsonStr = cr.get().getText();
+			Return<LoginToken> ret = mapper.readValue(jsonStr, type);
+			MessageModel<LoginToken> msg = convert(ret);
+			if (!msg.isFlag()) {
+				throw new ServiceException(
+						ServiceException.ERROR_CODE_LOGIN_ERROR,
+						msg.getMessage());
+			} else {
+				LoginToken login = msg.getData();
+				tokenId = login.getTokenid();
+				tokenExpirationTime = new Date().getTime() + 1700000;//set expiration time shorter than 30 minutes
+
+				UserModel user = new UserModel();
+				user.setSid(sid);
+				user.setServerId(login.getUserid());
+				user.setServerCode(login.getCodeid());
+
+				this.sid = sid;
+
+				return user;
+			}
+
+		} catch (ResourceException e1) {
+			e1.printStackTrace();
+			throw new ServiceException(e1);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			throw new ServiceException(e1);
+		} catch (RuntimeException re) {
+			re.printStackTrace();
+			throw new ServiceException(re);
+		}
+	}
+
+	@Override
+	public void login(String phone, String email, String password)
+			throws ServiceException {
+		try {
+			ClientResource cr = new ClientResource(base_url
+					+ "/common/user/login?email=" + email + "&mobile=" + phone
+					+ "&passwd=" + password + "&desc=ANDROID" + "product="
+					+ PRODUCT_NAME);
+			// Workaround for GAE servers to prevent chunk encoding
+			cr.setRequestEntityBuffering(true);
+			// cr.accept(MediaType.APPLICATION_JSON);
+			// cr.head(MediaType.APPLICATION_JSON);
+
+			TypeReference type = new TypeReference<LoginToken>() {
+			};
+
+			String jsonStr = cr.get().getText();
+			Return<LoginToken> ret = mapper.readValue(jsonStr, type);
+			MessageModel<LoginToken> msg = convert(ret);
+			if (!msg.isFlag()) {
+				throw new ServiceException(
+						ServiceException.ERROR_CODE_LOGIN_ERROR,
+						msg.getMessage());
+			} else {
+			LoginToken login = msg.getData();
+			tokenId = login.getTokenid();
+
+			}
+
+		} catch (ResourceException e1) {
+			e1.printStackTrace();
+			throw new ServiceException(e1);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			throw new ServiceException(e1);
+		}
+	}
+
+	@Override
+	public MessageModel<String> register(UserModel user)
+			throws ServiceException {
+		try {
+			ClientResource cr = new ClientResource(base_url
+					+ "/common/user/register?email=" + user.getEmail()
+					 + "&passwd="
+					+ user.getPassword() + "&mobileid=" + user.getSid());
+			// Workaround for GAE servers to prevent chunk encoding
+			cr.setRequestEntityBuffering(true);
+			// cr.accept(MediaType.APPLICATION_JSON);
+			// cr.head(MediaType.APPLICATION_JSON);
+
+			String jsonStr = cr.get().getText();
+			Return<String> ret = mapper.readValue(jsonStr, new TypeReference<Return<String>>(){});
+			return convert(ret);
+
+		} catch (ResourceException e1) {
+			throw new ServiceException(e1);
+		} catch (IOException e1) {
+			throw new ServiceException(e1);
+		}
+	}
+
+	@Override
+	public void setBaseUrl(String url) {
+		this.base_url = url;
+
+	}
+
+	@Override
+	public String getBaseUrl() {
+		return this.base_url;
+	}
+
+
+	private MessageModel<String> convert2(Return<ReturnString> ret) {
+		MessageModel<String> msg = new MessageModel<String>();
+		msg.setFlag(ret.getHead().getRet() == RETURN_CODE_SUCCESS);
+		msg.setMessage(ret.getHead().getMsg());
+		msg.setData(ret.getData().getString());
+		return msg;
+	}
+
+
+	@Override
+	public void setSid(String sid) {
+		this.sid = sid;
+	}
+
+	@Override
+	public <T> Return<T> generalQuery(RemoteInvokeModel rim)
+			throws ServiceException {
+		String url = rim.getUrl();
+		Return<T> result = null;
+		try {
+			sureLogin();
+			
+			url = url.replace(TOKEN_TAG, tokenId);
+			
+			ClientResource cr = new ClientResource(url);
+			cr.setRequestEntityBuffering(true);
+			
+			String jsonStr;
+			if(rim.getAction() == RemoteRequestAction.GET){
+				jsonStr = cr.get().getText();
+			}else{
+				//assemble request data
+				String request = "{\"tokenid\":\"" + tokenId + "\",\"data\":" + rim.getRequestBody() + "}";
+				Representation rep = new JsonRepresentation(request);
+				rep.setMediaType(MediaType.APPLICATION_JSON);
+
+				jsonStr = cr.post(rep).getText();
+			}
+
+			
+			result = mapper.readValue(jsonStr, new TypeReference<Return<T>>(){});
+
+		} catch (ResourceException e1) {
+			throw new ServiceException(e1);
+		} catch (IOException e1) {
+			throw new ServiceException(e1);
+		}
+		
+		return result;
+	}
+
+	@Override
+	public <T> Return<T> pushData2Server(RemoteInvokeModel rim)
+			throws ServiceException {
+		String url = rim.getUrl();
+		Return<T> result = null;
+		try {
+			sureLogin();
+			
+			url = url.replace(TOKEN_TAG, tokenId);
+			
+			ClientResource cr = new ClientResource(url);
+			// Workaround for GAE servers to prevent chunk encoding
+			cr.setRequestEntityBuffering(true);
+			// cr.accept(MediaType.APPLICATION_JSON);
+			// cr.head(MediaType.APPLICATION_JSON);
+			String jsonStr;
+			if(rim.getAction() == RemoteRequestAction.GET){
+				jsonStr = cr.get().getText();
+			}else{
+				//assemble request data
+				String request = "{\"tokenid\":\"" + tokenId + "\",\"data\":" + rim.getRequestBody() + "}";
+				Representation rep = new JsonRepresentation(request);
+				rep.setMediaType(MediaType.APPLICATION_JSON);
+
+				jsonStr = cr.post(rep).getText();
+			}
+
+			
+			result = mapper.readValue(jsonStr, new TypeReference<Return<T>>(){});
+
+		} catch (ResourceException e1) {
+			throw new ServiceException(e1);
+		} catch (IOException e1) {
+			throw new ServiceException(e1);
+		}
+		
+		return result;
+	}
+
+	@Override
+	public MessageModel<String> forgetPassword(String phone, String email)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

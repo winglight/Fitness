@@ -1,0 +1,123 @@
+package com.sythealth.custom.fragment;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import com.sythealth.fitness.PersonalHomeActivity;
+import com.sythealth.fitness.R;
+import com.sythealth.fitness.util.Utils;
+
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.ListView;
+import android.widget.TextView;
+
+public class SickFragment extends Fragment {
+	private List<String> lists;
+	private sickListAdapter adapter;
+	private static HashMap<Integer, Boolean> isSelected = new HashMap<Integer, Boolean>();
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		lists = new ArrayList<String>();
+		for (int i = 0; i < 20; i++) {
+			lists.add("我是神经病啊啊啊啊"+i);
+		}
+	}
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		View view = inflater.inflate(R.layout.fragment_sick, container, false);
+		init(view);
+		return view;
+	}
+	private void init(View v){
+		//疾病信息列表
+		adapter = new sickListAdapter();
+		ListView sickLv = (ListView)v.findViewById(R.id.fra_sick_listview);
+		sickLv.setDivider(null);
+		sickLv.setAdapter(adapter);
+		//返回按钮
+		Button backBtn = (Button)v.findViewById(R.id.fra_sick_back_btn);
+		Utils.goBack(backBtn,getActivity(), PersonalHomeActivity.class);
+	}
+	public static SickFragment newInstance(){
+		SickFragment fragment = new SickFragment();
+		Bundle bundle = new Bundle();
+		fragment.setArguments(bundle);
+		return fragment;
+	}
+	private class sickListAdapter extends BaseAdapter{
+		public sickListAdapter(){
+			for (int i = 0; i < lists.size(); i++) {
+				getSelected().put(i, false);
+			}
+		}
+		@Override
+		public int getCount() {
+			return lists.size();
+		}
+
+		@Override
+		public Object getItem(int arg0) {
+			return lists.get(arg0);
+		}
+
+		@Override
+		public long getItemId(int arg0) {
+			return arg0;
+		}
+
+		@Override
+		public View getView(final int position, View view, ViewGroup arg2) {
+			SickHolder holder;
+			if(view == null){
+				holder = new SickHolder();
+				view = LayoutInflater.from(getActivity()).inflate(R.layout.sick_listview_item, null);
+				holder.flagBtn = (Button)view.findViewById(R.id.sick_listview_item_flag_btn);
+				holder.tv = (TextView)view.findViewById(R.id.sick_listview_item_sick_tv);
+				view.setTag(holder);
+			}else{
+				holder = (SickHolder) view.getTag();
+			}
+			holder.tv.setText(lists.get(position));
+			if(getSelected().get(position)){
+				holder.flagBtn.setBackgroundResource(R.drawable.sick_list_checked_bg);
+			}else{
+				holder.flagBtn.setBackgroundResource(R.drawable.sick_list_unchecked_bg);
+			}
+			holder.flagBtn.setOnClickListener(new OnClickListener() {				
+				@Override
+				public void onClick(View arg0) {
+					if(getSelected().get(position)){
+						getSelected().put(position, false);
+					}else{
+						getSelected().put(position, true);
+					}
+					adapter.notifyDataSetChanged();
+				}
+			});
+			return view;
+		}	
+		public  HashMap<Integer, Boolean> getSelected(){
+			return isSelected;
+		}
+		public  void setIsSelected(HashMap<Integer, Boolean> isSelected){
+			SickFragment.isSelected = isSelected;
+		}
+	}
+	class SickHolder{
+		Button flagBtn;
+		TextView tv;
+	}
+}

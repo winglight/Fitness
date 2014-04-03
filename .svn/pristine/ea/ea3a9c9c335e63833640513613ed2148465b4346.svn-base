@@ -1,0 +1,59 @@
+package com.sythealth.fitness.json.result;
+
+import java.util.List;
+
+public class FitMyRankDto {
+	
+	public static final String SUMCOIN_FIELD = "sumcoin";
+	public static final String RANK_FIELD = "rank";
+	public static final String RANKOFCITY_FIELD = "rankofcity";
+	public static final String FITBEFORERANKDTOS_FIELD = "fitBeforeRankDtos";
+
+	int sumcoin;	//总获得金币
+	int rank;	//全国排名
+	int rankofcity; 	//同城排名
+	List<FitBeforeRankDto> fitBeforeRankDtos;	//历史排名流水账
+	public int getSumcoin() {
+		return sumcoin;
+	}
+	public void setSumcoin(int sumcoin) {
+		this.sumcoin = sumcoin;
+	}
+	public int getRank() {
+		return rank;
+	}
+	public void setRank(int rank) {
+		this.rank = rank;
+	}
+	public int getRankofcity() {
+		return rankofcity;
+	}
+	public void setRankofcity(int rankofcity) {
+		this.rankofcity = rankofcity;
+	}
+	public List<FitBeforeRankDto> getFitBeforeRankDtos() {
+		return fitBeforeRankDtos;
+	}
+	public void setFitBeforeRankDtos(List<FitBeforeRankDto> fitBeforeRankDtos) {
+		this.fitBeforeRankDtos = fitBeforeRankDtos;
+	}
+	public FitMyRankDto(int sumcoin, int rank, int rankofcity,
+			List<FitBeforeRankDto> fitBeforeRankDtos) {
+		super();
+		this.sumcoin = sumcoin;
+		this.rank = rank;
+		this.rankofcity = rankofcity;
+		this.fitBeforeRankDtos = fitBeforeRankDtos;
+	}
+	public FitMyRankDto() {
+		super();
+	}
+	@Override
+	public String toString() {
+		return "FitMyRankDto [sumcoin=" + sumcoin + ", rank=" + rank
+				+ ", rankofcity=" + rankofcity + ", fitBeforeRankDtos="
+				+ fitBeforeRankDtos + "]";
+	}
+	
+	
+}

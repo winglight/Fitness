@@ -1,0 +1,185 @@
+package com.sythealth.custom.fragment;
+
+import java.util.Calendar;
+import java.util.List;
+
+import com.sythealth.fitness.BaseActivity;
+import com.sythealth.fitness.MainActivity;
+import com.sythealth.fitness.PersonalHomeActivity;
+import com.sythealth.fitness.R;
+import com.sythealth.fitness.json.Province;
+import com.sythealth.fitness.service.ServiceImpl;
+import com.sythealth.fitness.util.Utils;
+import com.sythealth.fitness.view.ArrayWheelAdapter;
+import com.sythealth.fitness.view.CityWheelAdapter;
+import com.sythealth.fitness.view.CustomAlertDialog;
+import com.sythealth.fitness.view.OnWheelChangedListener;
+import com.sythealth.fitness.view.ProvinceWheelAdapter;
+import com.sythealth.fitness.view.WeightDialog;
+import com.sythealth.fitness.view.WheelView;
+
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.DatePickerDialog.OnDateSetListener;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
+import android.text.InputType;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+public class UserInfoFragment extends Fragment {
+	private Calendar calendar;
+	private String birthdayStr;
+	private TextView birthdayTv;
+	private boolean sexFlag = true;
+	private Button manBtn;
+	private Button womanBtn;
+	private WheelView provinceWv;
+	private WheelView cityWv;
+	private WheelView weightWV1;
+	private WheelView weightWV2;
+	private String []weight1;
+	private String []weight2;
+	private ServiceImpl service;
+	private List<Province> provinces;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		calendar = Calendar.getInstance();
+		weight1 = getResources().getStringArray(R.array.weight_quantity);
+		weight2 = getResources().getStringArray(R.array.weight_point);
+		service = ((BaseActivity)getActivity()).getService();
+		provinces = service.getProvinces();
+	}
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		View view = inflater.inflate(R.layout.fragment_userinfo, container, false);
+		init(view);
+		return view;
+	}
+	private void init(View v){
+		//性别
+		manBtn = (Button)v.findViewById(R.id.fra_userinfo_man_btn);
+		womanBtn = (Button)v.findViewById(R.id.fra_userinfo_woman_btn);
+		manBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				if(!sexFlag){
+					manBtn.setBackgroundResource(R.drawable.user_info_man_btn_inactive);
+					womanBtn.setBackgroundResource(R.drawable.user_info_woman_btn_active);
+					sexFlag = true;
+				}
+			}
+		});
+		womanBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				if(sexFlag){
+					manBtn.setBackgroundResource(R.drawable.user_info_man_btn_active);
+					womanBtn.setBackgroundResource(R.drawable.user_info_woman_btn_inactive);
+					sexFlag = false;
+				}
+			}
+		});
+		//生日
+		birthdayTv = (TextView)v.findViewById(R.id.fra_userinfo_birthday_tv);
+		birthdayTv.setInputType(InputType.TYPE_NULL);
+		birthdayTv.setOnClickListener(new OnClickListener() {	
+			@Override
+			public void onClick(View arg0) {
+				int year = calendar.get(Calendar.YEAR);
+				int month = calendar.get(Calendar.MONTH);
+				int day = calendar.get(Calendar.DAY_OF_MONTH);
+				if(!birthdayTv.getText().toString().equals("")){
+					birthdayStr = birthdayTv.getText().toString();
+					String []str = birthdayStr.split("\\.");
+					year =Integer.parseInt(str[0]);
+					month = Integer.parseInt(str[1])-1;
+					day = Integer.parseInt(str[2]);
+				}
+				new DatePickerDialog(getActivity(),
+						new OnDateSetListener() {							
+							@Override
+							public void onDateSet(DatePicker view, int year, int monthOfYear,
+									int dayOfMonth) {
+								monthOfYear = monthOfYear+1;
+								birthdayStr = year+"."+monthOfYear+"."+dayOfMonth;
+								birthdayTv.setText(birthdayStr);
+							}
+						}, 
+						year, 
+						month, 
+						day).show();
+			}
+		});
+		//城市
+		TextView cityTv = (TextView)v.findViewById(R.id.fra_userinfo_city_tv);
+		cityTv.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View v) {
+				View view = LayoutInflater.from(getActivity()).inflate(R.layout.view_city, null);
+				new CustomAlertDialog.Builder(getActivity()).setView(view).setPositiveButton(" ", new DialogInterface.OnClickListener() {					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						View view = LayoutInflater.from(getActivity()).inflate(R.layout.view_city, null);
+						provinceWv = (WheelView)view.findViewById(R.id.view_city_wv1);
+						cityWv = (WheelView)view.findViewById(R.id.view_city_wv2);
+						provinceWv.setAdapter(new ProvinceWheelAdapter(provinces));
+						cityWv.setAdapter(new CityWheelAdapter(provinces.get(0).getItem()));
+						provinceWv.addChangingListener(new OnWheelChangedListener() {						
+							@Override
+							public void onChanged(WheelView wheel, int oldValue, int newValue) {
+								cityWv.setAdapter(new CityWheelAdapter(provinces.get(newValue).getItem()));
+							}
+						});
+					}
+				}).setNegativeButton(" ", null).show();
+			}
+		});
+		//体重
+		TextView weightTv = (TextView)v.findViewById(R.id.fra_userinfo_weight_tv);
+		weightTv.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View v) {
+				View view = LayoutInflater.from(getActivity()).inflate(R.layout.view_weight, null);
+				weightWV1 = (WheelView)view.findViewById(R.id.view_weight_wv1);
+				weightWV1.setAdapter(new ArrayWheelAdapter<String>(weight1));
+				weightWV2 = (WheelView)view.findViewById(R.id.view_weight_wv2);
+				weightWV2.setAdapter(new ArrayWheelAdapter<String>(weight2));
+				new CustomAlertDialog.Builder(getActivity()).setView(view).setPositiveButton(" ", new DialogInterface.OnClickListener() {					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						
+					}
+				}).setNegativeButton(" ", null).show();
+			}
+		});
+		//返回按钮
+		Button backBtn = (Button)v.findViewById(R.id.fra_userinfo_back_btn);
+		backBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View v) {
+				Utils.jumpUI(getActivity(), PersonalHomeActivity.class,true, true);
+			}
+		});
+	}
+	public static UserInfoFragment newInstance(){
+		UserInfoFragment fragment = new UserInfoFragment();
+		Bundle bundle = new Bundle();
+		fragment.setArguments(bundle);
+		return fragment;
+	}
+}

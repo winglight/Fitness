@@ -1,0 +1,65 @@
+package com.sythealth.fitness;
+
+import com.sythealth.fitness.db.DiaryModel;
+import com.sythealth.fitness.db.UserModel;
+import com.sythealth.fitness.service.ServiceImpl;
+import com.sythealth.fitness.util.DateUtils;
+import com.sythealth.fitness.util.Utils;
+
+import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+public class DiaryInfoActivity extends BaseActivity {
+	private DiaryModel diaryModel;
+	private UserModel user;
+	private ServiceImpl service;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_diaryinfo);
+		init();
+	}
+    private void init(){
+	//返回按钮
+	Button backBtn = (Button)findViewById(R.id.act_diaryinfo_back_btn);
+	backBtn.setOnClickListener(new OnClickListener() {			
+		@Override
+		public void onClick(View arg0) {
+			onBackPressed();
+		}
+	});
+	//用户图像
+	ImageView iconIv = (ImageView)findViewById(R.id.act_diaryinfo_icon_iv);
+	iconIv.setBackgroundResource(R.drawable.s_logo_shrink);
+	//用户昵称
+	TextView nameTv = (TextView)findViewById(R.id.act_diaryinfo_name_tv);
+	nameTv.setText("孙子");
+	
+	//日记内容
+	TextView valueTv = (TextView)findViewById(R.id.act_diaryinfo_value_tv);
+	valueTv.setText("孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子" +
+			"孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子" +
+			"孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子" +
+			"孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子" +
+			"孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子" +
+			"孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子" +
+			"孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子" +
+			"孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子孙子");
+	//相片
+	ImageView picIv = (ImageView)findViewById(R.id.fra_diaryinfo_pic_iv);
+	picIv.setBackgroundResource(R.drawable.s_logo_shrink);
+	//发表日期
+	TextView dateTv = (TextView)findViewById(R.id.fra_diaryinfo_date_tv);
+	dateTv.setText("5月16日8:00");
+	if(user!=null){
+		nameTv.setText(user.getNickName());
+	}
+	if(diaryModel!=null){
+		dateTv.setText(DateUtils.formatMonthDayHourMinute(diaryModel.getCreatedAt()));
+	}
+  }
+}

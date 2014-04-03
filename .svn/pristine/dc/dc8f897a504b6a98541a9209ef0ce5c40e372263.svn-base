@@ -1,0 +1,18 @@
+package com.sythealth.fitness.db.enumetype;
+
+public enum MedalType {
+
+	CHEST("胸部运动"),
+	ARM("手臂运动"),
+	HIP("臀部运动");
+
+	private final String displayName;
+
+	MedalType(String displayName) {
+		this.displayName = displayName;
+	}
+
+	public String getDisplayName() {
+		return displayName;
+	}
+}

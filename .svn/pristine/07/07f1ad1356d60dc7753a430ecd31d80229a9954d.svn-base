@@ -1,0 +1,116 @@
+package com.sythealth.fitness;
+import org.restlet.security.User;
+import org.w3c.dom.Text;
+
+import com.sythealth.fitness.db.UserModel;
+import com.sythealth.fitness.service.ServiceImpl;
+import com.sythealth.fitness.util.Utils;
+import com.umeng.analytics.MobclickAgent;
+
+import android.os.Bundle;
+import android.R.anim;
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.util.Log;
+import android.view.Display;
+import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
+import android.view.animation.ScaleAnimation;
+import android.view.animation.TranslateAnimation;
+import android.view.animation.Animation.AnimationListener;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout.LayoutParams;
+import android.widget.TextView;
+
+public class MainActivity extends BaseActivity {
+	private ServiceImpl service;
+	private UserModel user;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		TextView totlePlan_tv = (TextView)findViewById(R.id.act_main_total_plan_tv);
+		totlePlan_tv.setTextColor(Color.rgb(0, 123, 208));
+		setTypeface2(totlePlan_tv);
+		TextView totleCal_tv = (TextView)findViewById(R.id.act_main_total_calorie_tv);
+		setTypeface2(totleCal_tv);
+		totleCal_tv.setTextColor(Color.rgb(0, 123, 208));
+		
+		service = getService();
+		user = service.getCurrentUser();
+		
+		init();
+	}
+	private void init(){
+//		//用户任务数量
+		TextView task_tv = (TextView)findViewById(R.id.act_main_task_tv);
+		setTypeface2(task_tv);
+//		//经验进度
+		TextView experience_tv = (TextView)findViewById(R.id.act_main_experience_tv);
+		setTypeface1(experience_tv);
+		experience_tv.setTextColor(Color.rgb(252,243,200));
+//		//用户级别
+		TextView level_tv = (TextView)findViewById(R.id.act_main_level_tv);
+		level_tv.setText(user.getLevel().getDisplayName());
+		setTypeface2(level_tv); 
+		//用户金币数量
+		TextView gold_tv = (TextView)findViewById(R.id.act_main_gold_tv);
+		gold_tv.setText(user.getGold());
+		setTypeface1(gold_tv);
+		gold_tv.setTextColor(Color.rgb(252,243,200));
+		//用户宝石数量
+		TextView gem_tv = (TextView)findViewById(R.id.act_main_gem_tv);
+		gem_tv.setText(user.getGem());
+		setTypeface1(gem_tv);
+		gem_tv.setTextColor(Color.rgb(252,243,200));
+		//用户当前计划达成进度
+		TextView plan_tv = (TextView)findViewById(R.id.act_main_plan_tv);
+		plan_tv.setText(String.valueOf(user.getCurrentWeight()-user.getPlanBeginWeight()));
+		setTypeface1(plan_tv);
+		ProgressBar plan_pb  = (ProgressBar)findViewById(R.id.act_main_plan_pb);
+		plan_pb.setProgress(50);
+		//当日运动消耗热量进度
+		TextView calorie_tv = (TextView)findViewById(R.id.act_main_calorie_tv);
+		calorie_tv.setText(user.getTodayLossFat());
+		setTypeface1(calorie_tv);
+		ProgressBar calorie_pb = (ProgressBar)findViewById(R.id.act_main_calorie_pb);
+		calorie_pb.setProgress(20);
+		//用户图像
+		ImageView userIcon_iv = (ImageView)findViewById(R.id.act_main_user_icon);
+		userIcon_iv.setImageBitmap(Utils.toRoundBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher)));
+		//拍档图像
+		ImageView pal_iv = (ImageView)findViewById(R.id.act_main_pal_icon);
+		pal_iv.setImageBitmap(Utils.toRoundBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher)));
+	}
+	@Override
+	public void onResume() {
+		super.onResume();
+		//友盟监听
+		MobclickAgent.onResume(this);
+	}
+	@Override
+	public void onPause() {
+		super.onPause();
+		//友盟监听
+		MobclickAgent.onPause(this);
+	}
+	//设置字体为方正粗倩简体
+	private void setTypeface1(TextView tv){
+		Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/fzcqjw.ttf"); 
+		tv.setTypeface(typeface);
+	}
+	//设置字体为时尚中黑简体
+	private void setTypeface2(TextView tv){
+		Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/shishanghei.ttf"); 
+		tv.setTypeface(typeface);
+	}
+}

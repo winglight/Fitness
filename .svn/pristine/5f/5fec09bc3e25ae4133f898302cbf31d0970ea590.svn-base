@@ -1,0 +1,67 @@
+package com.sythealth.fitness.db;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
+@DatabaseTable(tableName = "MEDAL")
+public class MedalModel implements Serializable {
+
+	public static final String FIELD_SERVERID = "SERVERID";
+	public static final String FIELD_OWNER = "OWNER";
+	public static final String FIELD_MEDALNAME = "MEDALNAME";
+	public static final String FIELD_MEDALIMAGE = "MEDALIMAGE";
+	public static final String FIELD_GOTON = "GOTON";
+	
+	@DatabaseField(generatedId = true)
+	private long id = -1;
+	@DatabaseField(columnName = FIELD_SERVERID)
+	private String serverId;// ID of server
+	@DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = FIELD_OWNER)
+	private UserModel owner;
+	@DatabaseField(columnName = FIELD_MEDALNAME)
+	private String medalName;// medal name
+	@DatabaseField(columnName = FIELD_MEDALIMAGE)
+	private String medalImage;// medal image
+	@DatabaseField(columnName = FIELD_GOTON)
+	private Date gotOn;// when got the medal
+	
+	public MedalModel(){
+		
+	}
+	
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
+	}
+	public String getServerId() {
+		return serverId;
+	}
+	public void setServerId(String serverId) {
+		this.serverId = serverId;
+	}
+	public String getMedalName() {
+		return medalName;
+	}
+	public void setMedalName(String medalName) {
+		this.medalName = medalName;
+	}
+	public String getMedalImage() {
+		return medalImage;
+	}
+	public void setMedalImage(String medalImage) {
+		this.medalImage = medalImage;
+	}
+	public Date getGotOn() {
+		return gotOn;
+	}
+	public void setGotOn(Date gotOn) {
+		this.gotOn = gotOn;
+	}
+	
+	
+}

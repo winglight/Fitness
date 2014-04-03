@@ -1,0 +1,1119 @@
+package com.sythealth.fitness.service;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.io.IOUtils;
+
+import android.content.Context;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sythealth.fitness.db.CountSportModel;
+import com.sythealth.fitness.db.DiaryModel;
+import com.sythealth.fitness.db.FriendModel;
+import com.sythealth.fitness.db.LevelModel;
+import com.sythealth.fitness.db.MedalModel;
+import com.sythealth.fitness.db.RemoteInvokeModel;
+import com.sythealth.fitness.db.UserModel;
+import com.sythealth.fitness.db.WeightModel;
+import com.sythealth.fitness.db.enumetype.FriendStatus;
+import com.sythealth.fitness.db.enumetype.RemoteInvokeStatus;
+import com.sythealth.fitness.db.enumetype.RemoteRequestAction;
+import com.sythealth.fitness.json.LoginToken;
+import com.sythealth.fitness.json.Province;
+import com.sythealth.fitness.json.Return;
+import com.sythealth.fitness.json.result.FitFriendWardataDto;
+import com.sythealth.fitness.json.result.FitMyRankDto;
+import com.sythealth.fitness.json.result.FitRankDto;
+import com.sythealth.fitness.json.result.FitSportsProjectDto;
+import com.sythealth.fitness.json.result.FitWardataDto;
+import com.sythealth.fitness.json.user.FitUserDataDto;
+import com.sythealth.fitness.util.DateUtils;
+
+public class ServiceImpl {
+
+	private static final String LOG_TAG = "ServiceImpl";
+
+	private IDBService dbService;
+	private IRemoteService remoteService;
+	private UserModel currentUser;
+	private Context context;
+
+	private List<Province> provinces;
+
+	private ObjectMapper mapper;
+
+	private static ServiceImpl instance;
+
+	public static ServiceImpl getInstance(Context context) {
+		if (instance == null) {
+			// initDBFile(context);
+
+			instance = new ServiceImpl(context);
+		}
+		if (instance.remoteService == null) {
+			instance.remoteService = RemoteServiceImpl.getInstance();
+		}
+		return instance;
+	}
+
+	// private static void initDBFile(Context context) {
+	// File dbfile = context.getDatabasePath(CommonDBOpenHelper.DATABASE_NAME);
+	// // judge if there exists the db file
+	// if (!dbfile.exists()) {
+	// // no db file then copy init db file from assets
+	// InputStream in = null;
+	// try {
+	// in = context.getAssets().open(CommonDBOpenHelper.DATABASE_NAME);
+	// if (in != null) {
+	// dbfile.getParentFile().mkdirs();
+	// FileOutputStream writer = new FileOutputStream(dbfile);
+	// IOUtils.write(IOUtils.toByteArray(in), writer);
+	// }
+	// } catch (Exception e) {
+	// Log.e(LOG_TAG, "copy init db exception:" + e.getMessage());
+	// }
+	// }
+	// }
+
+	private ServiceImpl(Context context) {
+		this.context = context;
+		this.dbService = DBServiceImpl.getInstance(context);
+		this.remoteService = RemoteServiceImpl.getInstance();
+
+		this.mapper = new ObjectMapper();
+
+		TelephonyManager manager = (TelephonyManager) context
+				.getSystemService(Context.TELEPHONY_SERVICE);
+		String sid = manager.getDeviceId();
+
+		this.remoteService.setSid(sid);
+	}
+
+	private IDBService getDbService() {
+		if (dbService == null) {
+			dbService = DBServiceImpl.getInstance(context);
+		}
+		dbService.setCurrentUser(currentUser);
+		return dbService;
+	}
+
+	private void setCurrentUser(UserModel currentUser) {
+		this.currentUser = currentUser;
+		this.dbService.setCurrentUser(currentUser);
+	}
+
+	interface PushCallBack {
+		public void execute(RemoteInvokeModel rim);
+
+	}
+
+	interface QueryCallBack {
+		public void execute(String res);
+
+	}
+
+	/********** 同步方法-远程 ****************/
+	public UserModel getCurrentUser() {
+		if (currentUser == null) {
+			currentUser = getDbService().queryDefaultUser();
+		}
+		return currentUser;
+	}
+
+	public boolean createUser(UserModel user) {
+		return getDbService().createUser(user);
+	}
+
+	public MessageModel<UserModel> loginByEmail(String email, String password) {
+		MessageModel<UserModel> msg = new MessageModel<UserModel>();
+		try {
+			remoteService.login( email, password);
+
+			UserModel user = getDbService().queryDefaultUser();
+			// save user into db
+			if (user == null) {
+				user = new UserModel();
+				getDbService().createUser(user);
+			}
+			setCurrentUser(user);
+			msg.setData(user);
+			msg.setFlag(true);
+		} catch (ServiceException e) {
+			Log.e(LOG_TAG, "loginByEmail error:" + e.getMessage());
+			msg.setErrorCode(e.getErrorCode());
+			msg.setMessage(e.getMessage());
+		}
+		return msg;
+	}
+
+	public MessageModel<String> forgetPasswordByEmail(String email) {
+		MessageModel<String> msg = new MessageModel<String>();
+		try {
+			return remoteService.forgetPassword("", email);
+		} catch (ServiceException e) {
+			Log.e(LOG_TAG, "loginDirect error:" + e.getMessage());
+			msg.setErrorCode(e.getErrorCode());
+			msg.setMessage(e.getMessage());
+		}
+		return msg;
+	}
+
+	public MessageModel<String> forgetPasswordByPhone(String phone) {
+		MessageModel<String> msg = new MessageModel<String>();
+		try {
+			return remoteService.forgetPassword(phone, "");
+		} catch (ServiceException e) {
+			Log.e(LOG_TAG, "loginDirect error:" + e.getMessage());
+			msg.setErrorCode(e.getErrorCode());
+			msg.setMessage(e.getMessage());
+		}
+		return msg;
+	}
+
+	public MessageModel<String> register(UserModel user) {
+		MessageModel<String> msg = new MessageModel<String>();
+		try {
+			msg = remoteService.register(user);
+
+			if (msg.isFlag()) {
+				// save user into db
+
+				if (!getDbService().createUser(user)) {
+					msg.setFlag(false);
+					msg.setErrorCode(ServiceException.ERROR_CODE_DB_EXCEPTION);
+					return msg;
+				}
+
+				msg.setFlag(true);
+			}
+		} catch (ServiceException e) {
+			Log.e(LOG_TAG, "loginDirect error:" + e.getMessage());
+			msg.setErrorCode(e.getErrorCode());
+			msg.setMessage(e.getMessage());
+		}
+
+		return msg;
+	}
+
+	public MessageModel<UserModel> loginDirect(String sid) {
+		MessageModel<UserModel> msg = new MessageModel<UserModel>();
+		try {
+			UserModel user = remoteService.loginDirect(sid);
+
+			// query user from local db
+			UserModel user2 = getDbService().queryUserBySid(sid);
+			if (user2 == null) {
+				user.setServerCode(user.getServerCode());
+				user.setServerId(user.getServerId());
+				// save user into db
+				if (!getDbService().createUser(user)) {
+					msg.setFlag(false);
+					msg.setErrorCode(ServiceException.ERROR_CODE_DB_EXCEPTION);
+					return msg;
+				} else {
+					user = getDbService().queryUserBySid(sid);
+				}
+			} else {
+				if (user2.getServerId() == null
+						|| user2.getServerCode() == null) {
+					user2.setServerCode(user.getServerCode());
+					user2.setServerId(user.getServerId());
+
+					getDbService().updateUser(user2);
+				}
+				user = user2;
+			}
+
+			setCurrentUser(user);
+			msg.setData(user);
+			msg.setFlag(true);
+		} catch (ServiceException e) {
+			Log.e(LOG_TAG, "loginDirect error:" + e.getMessage());
+			msg.setErrorCode(e.getErrorCode());
+			msg.setMessage(e.getMessage());
+		}
+		return msg;
+	}
+
+	/********** 同步方法-本地 ****************/
+	public List<MedalModel> getAllMedals() {
+		return getDbService().getAllMedals();
+	}
+
+	public List<LevelModel> getAllLevels() {
+		return getDbService().getAllLevels();
+	}
+
+	/**
+	 * 创建新的体重记录
+	 * 
+	 * @param weight
+	 */
+	public void createWeightRecord(WeightModel weight) {
+		// 1.save local
+		weight.setOwner(currentUser);
+		getDbService().createWeightRecord(weight);
+		// 2.save User info
+		currentUser.setCurrentWeight(weight.getWeight());
+		currentUser.refresh();
+		getDbService().updateUser(currentUser);
+		// 3.push to server
+		pushData2Server(
+				createRIM(RemoteRequestAction.GET,
+						remoteService.getBaseUrl()
+								+ "/fit/result/setweight?tokenid="
+								+ RemoteServiceImpl.TOKEN_TAG + "&weight="
+								+ weight.getWeight(), ""), null);
+
+	}
+
+	/**
+	 * 创建新的日记
+	 * 
+	 * @param diary
+	 */
+	public void createDiaryRecord(final DiaryModel diary) {
+		// 1.save local
+		diary.setOwner(currentUser);
+		getDbService().createDiaryRecord(diary);
+		// 2.push to server
+		String request = "{\"title\":\"\",\"content\":\""
+				+ diary.getTextContent() + "\",\"pic\": \"" + diary.getImages()
+				+ "\",\"flag\":" + ((diary.isPublic()) ? 0 : 1) + "}";
+
+		pushData2Server(
+				createRIM(RemoteRequestAction.POST, remoteService.getBaseUrl()
+						+ "/fit/note/addnote", request), new PushCallBack() {
+
+					@Override
+					public void execute(RemoteInvokeModel rim) {
+						// update diary server id
+						String serverId = rim.getResponseBody();
+						diary.setServerId(serverId);
+
+						getDbService().updateDiaryRecord(diary);
+					}
+				});
+	}
+
+	/**
+	 * 保存 公开战绩 设置
+	 * 
+	 * @param flag
+	 * @return
+	 */
+	@Deprecated
+	public UserModel savePublicAchievementSetting(boolean flag) {
+		if (flag != currentUser.isPublicAchievement()) {
+			currentUser.setPublicAchievement(flag);
+			getDbService().updateUser(currentUser);
+
+			// 保存到服务器
+			RemoteInvokeModel rim = new RemoteInvokeModel();
+			// TODO:add params for RPC
+
+			pushData2Server(rim, null);
+		}
+		return currentUser;
+	}
+
+	public UserModel saveDeclare(String delcare) {
+		if (!delcare.equals(currentUser.getDeclaration())) {
+			currentUser.setDeclaration(delcare);
+			getDbService().updateUser(currentUser);
+
+			// 保存到服务器
+			pushData2Server(
+					createRIM(RemoteRequestAction.GET,
+							remoteService.getBaseUrl()
+									+ "/fit/user/setdeclaration?tokenid="
+									+ RemoteServiceImpl.TOKEN_TAG
+									+ "&declaration=" + delcare, ""), null);
+		}
+		return currentUser;
+	}
+
+	public UserModel savePlan(double beginPlanWeight, double endPlanWeight,
+			Date endPlanDate) {
+		currentUser.setPlanBeginWeight(beginPlanWeight);
+		currentUser.setPlanEndWeight(endPlanWeight);
+		currentUser.setPlanBeginDate(new Date());
+		currentUser.setPlanEndDate(endPlanDate);
+		getDbService().updateUser(currentUser);
+
+		// 保存到服务器
+		String request = "{\"initweight\":" + beginPlanWeight
+				+ ",\"targetweight\":\"" + endPlanWeight
+				+ "\",\"startdate\": \"" + DateUtils.defaultFormat(new Date())
+				+ "\",\"enddate\":\"" + endPlanDate + "\"}";
+		pushData2Server(
+				createRIM(RemoteRequestAction.POST, remoteService.getBaseUrl()
+						+ "/fit/plan/saveplan", request), null);
+		return currentUser;
+	}
+
+	/*************** 朋友相关接口 ***************/
+	// 邀请陌生人成为好友
+	public void inviteFriend(String userServerId, String nickName,
+			String imgUrl, String msg) {
+		// 1.本地保存邀请好友信息
+		FriendModel fm = new FriendModel();
+		fm.setServerId(userServerId);
+		fm.setNickName(nickName);
+		fm.setAvatar(imgUrl);
+		fm.setStatus(FriendStatus.INVITED);
+		fm.setMessage(msg);
+
+		getDbService().createFriend(fm);
+
+		// 2.发送邀请到服务器
+		pushData2Server(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/user/invitefriend?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG + "&frienduserid="
+						+ userServerId + "&reqmsg=" + msg, ""), null);
+	}
+
+	// 取消邀请
+	@Deprecated
+	public void cancelInviteFriend(String userServerId, String nickName,
+			String imgUrl) {
+		// 1.本地保存邀请好友信息
+		FriendModel fm = new FriendModel();
+		fm.setServerId(userServerId);
+		fm.setNickName(nickName);
+		fm.setAvatar(imgUrl);
+		fm.setStatus(FriendStatus.CANCELINVITE);
+
+		getDbService().createFriend(fm);
+
+		// 2.发送邀请到服务器
+		RemoteInvokeModel rim = new RemoteInvokeModel();
+		// TODO:add params for RPC
+
+		pushData2Server(rim, null);
+	}
+
+	// 接受好友邀请
+	public void acceptFriend(String userServerId, String nickName, String imgUrl) {
+		// 1.本地保存邀请好友信息
+		FriendModel fm = new FriendModel();
+		fm.setServerId(userServerId);
+		fm.setNickName(nickName);
+		fm.setAvatar(imgUrl);
+		fm.setStatus(FriendStatus.ACCEPTED);
+
+		getDbService().createFriend(fm);
+
+		// 2.发送接受邀请到服务器
+		pushData2Server(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/user/confirmfriend?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG + "&friendid="
+						+ userServerId + "&action=agree", ""), null);
+	}
+
+	// 拒绝好友邀请
+	public void refuseFriend(String userServerId, String nickName, String imgUrl) {
+		// 1.本地保存邀请好友信息
+		FriendModel fm = new FriendModel();
+		fm.setServerId(userServerId);
+		fm.setNickName(nickName);
+		fm.setAvatar(imgUrl);
+		fm.setStatus(FriendStatus.REFUSED);
+
+		getDbService().createFriend(fm);
+
+		// 2.发送拒绝好友到服务器
+		pushData2Server(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/user/confirmfriend?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG + "&friendid="
+						+ userServerId + "&action=reject", ""), null);
+	}
+
+	// 删除好友
+	public void deleteFriend(String userServerId, String nickName, String imgUrl) {
+		// 1.本地保存邀请好友信息
+		FriendModel fm = new FriendModel();
+		fm.setServerId(userServerId);
+		fm.setNickName(nickName);
+		fm.setAvatar(imgUrl);
+		fm.setStatus(FriendStatus.DELETED);
+
+		getDbService().createFriend(fm);
+
+		// 2.发送删除好友到服务器
+		pushData2Server(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/user/confirmfriend?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG + "&friendid="
+						+ userServerId + "&action=release", ""), null);
+	}
+
+	/*************** 拍档相关接口 ***************/
+	// 邀请陌生人或朋友成为拍档
+	public void invitePartner(String userServerId, String nickName,
+			String imgUrl, String msg) {
+		// 1.本地保存邀请拍档信息
+		FriendModel fm = new FriendModel();
+		fm.setServerId(userServerId);
+		fm.setNickName(nickName);
+		fm.setAvatar(imgUrl);
+		fm.setStatus(FriendStatus.INVITED);
+		fm.setPartner(true);
+		fm.setMessage(msg);
+
+		getDbService().createFriend(fm);
+
+		// 2.发送邀请拍档到服务器
+		pushData2Server(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/user/invitepartner?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG + "&frienduserid="
+						+ userServerId + "&reqmsg=" + msg, ""), null);
+	}
+
+	// 取消邀请陌生人或朋友成为拍档
+	@Deprecated
+	public void cancelInvitePartner(String userServerId, String nickName,
+			String imgUrl) {
+		// 1.本地保存邀请拍档信息
+		FriendModel fm = new FriendModel();
+		fm.setServerId(userServerId);
+		fm.setNickName(nickName);
+		fm.setAvatar(imgUrl);
+		fm.setStatus(FriendStatus.CANCELINVITE);
+		fm.setPartner(true);
+
+		getDbService().createFriend(fm);
+
+		// 2.发送邀请拍档到服务器
+		// RemoteInvokeModel rim = new RemoteInvokeModel();
+		// TODO:add params for RPC
+
+		// pushData2Server(rim, null);
+	}
+
+	// 接受拍档邀请
+	public void acceptPartner(String userServerId, String nickName,
+			String imgUrl) {
+		// 1.本地保存接受拍档信息
+		FriendModel fm = new FriendModel();
+		fm.setServerId(userServerId);
+		fm.setNickName(nickName);
+		fm.setAvatar(imgUrl);
+		fm.setStatus(FriendStatus.ACCEPTED);
+		fm.setPartner(true);
+
+		getDbService().createFriend(fm);
+
+		// 2.更新用户拍档信息
+		currentUser.setPartnerId(userServerId);
+		currentUser.setPartnerName(nickName);
+		currentUser.setPartnerAvatar(imgUrl);
+
+		getDbService().updateUser(currentUser);
+
+		// 3.发送接受拍档到服务器
+		pushData2Server(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/user/confirmpartner?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG + "&partnerid="
+						+ userServerId + "&action=agree", ""), null);
+	}
+
+	// 拒绝拍档邀请
+	public void refusePartner(String userServerId, String nickName,
+			String imgUrl) {
+		// 1.本地保存拒绝拍档信息
+		FriendModel fm = new FriendModel();
+		fm.setServerId(userServerId);
+		fm.setNickName(nickName);
+		fm.setAvatar(imgUrl);
+		fm.setStatus(FriendStatus.REFUSED);
+		fm.setPartner(true);
+
+		getDbService().createFriend(fm);
+
+		// 2.发送拒绝到服务器
+		pushData2Server(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/user/confirmpartner?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG + "&partnerid="
+						+ userServerId + "&action=reject", ""), null);
+	}
+
+	// 删除拍档
+	public void deletePartner(String userServerId, String nickName,
+			String imgUrl) {
+		// 1.本地保存删除拍档信息
+		FriendModel fm = new FriendModel();
+		fm.setServerId(userServerId);
+		fm.setNickName(nickName);
+		fm.setAvatar(imgUrl);
+		fm.setStatus(FriendStatus.DELETED);
+		fm.setPartner(true);
+
+		getDbService().createFriend(fm);
+
+		// 2.更新用户拍档信息
+		currentUser.setPartnerId(null);
+		currentUser.setPartnerName(null);
+		currentUser.setPartnerAvatar(null);
+
+		getDbService().updateUser(currentUser);
+
+		// 3.发送删除拍档到服务器
+		pushData2Server(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/user/confirmpartner?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG + "&partnerid="
+						+ userServerId + "&action=release", ""), null);
+	}
+
+	// 给某个用户发送消息
+	public void sendMessageToUser(String uid, String msg) {
+		String request = "{\"senduserid\":\"" + currentUser.getServerId()
+				+ "\",\"receiveuserid\": \"" + uid + "\",\"content\":" + msg
+				+ "}";
+
+		pushData2Server(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/jpush/send", request), null);
+	}
+
+	/***************** 运动相关接口 *********************/
+	// 获取所有局部瘦身运动
+	public List<CountSportModel> getCountSports() {
+		return getDbService().getCountSports();
+	}
+
+	/**
+	 * 局部运动完成后检查是否获得勋章(还未获得的勋章)，是返回勋章，否返回null
+	 * 
+	 * @return
+	 */
+	public List<MedalModel> checkCountSportAchievement() {
+		return getDbService().getNotInformedMedal();
+	}
+
+	/**
+	 * 记录计数运动完成后的金币、经验、消耗热量，并保存到用户及今日战绩中，勋章中增加一次计数
+	 * 
+	 * @param times
+	 *            运动次数
+	 * @param csm
+	 *            运动项目
+	 * @return
+	 */
+	public UserModel saveCountSportRecord(int times, CountSportModel csm,
+			boolean isPK) {
+		// 1.计算金币、经验、消耗热量，并保存
+		double cals = currentUser.getCurrentWeight() * times
+				* csm.getStandardCals();
+		int gold = new BigDecimal(cals).setScale(0, BigDecimal.ROUND_HALF_UP)
+				.intValue();
+		int exp = gold;
+		currentUser.setGold(currentUser.getGold() + gold);
+		currentUser.setExperience(currentUser.getExperience() + exp);
+
+		// 2.保存今日战绩：今日累计消耗热量、获得金币、获得经验，运动记录
+		currentUser.setTodayExperience(currentUser.getTodayExperience() + exp);
+		currentUser.setTodayGold(currentUser.getTodayGold() + gold);
+		currentUser.setTodayLossFat(currentUser.getTodayLossFat() + cals);
+		currentUser.setTodayRecord(DateUtils.formatHourMinute(new Date()) + " "
+				+ csm.getSportName() + " " + cals + "千卡 " + gold + "金币 " + exp
+				+ "经验值\n" + currentUser.getTodayRecord());
+		// currentUser.setTodayDate(new Date());
+
+		// 3.勋章记录中，增加一次计数，然后检查是否获得勋章，是，保存记录到历史战绩
+		String medal = "";
+		if (times >= csm.getCount()) {
+			MedalModel mm = getDbService().countMedalSport(csm.getType(), 1);
+			if (mm != null) {
+				medal = mm.getMedalName();
+				pushHitoryTodayRecord();
+			}
+		}
+
+		// 4.检查经验值是否达到升级条件，是，保存记录到历史战绩
+		String ll = "";
+		if (currentUser.getExperience() >= currentUser.getLevel().getExp()) {
+			LevelModel level = getDbService().levelUp();
+			if (level != null) {
+				ll = level.getName();
+				pushHitoryTodayRecord();
+			}
+		}
+
+		// 5.if it's a PK sport, save to local db
+		if (isPK) {
+			String pkTodayDetail = currentUser.getPkTodayDetail();
+			pkTodayDetail += csm.getSportName() + ": " + times + "个 " + cals
+					+ "千卡\n";
+			currentUser.setPkTodayDetail(pkTodayDetail);
+			currentUser.setPkYesterdayCals(currentUser.getPkYesterdayCals() + (int)cals);
+		}
+
+		// 6.更新currentUser
+		getDbService().updateUser(currentUser);
+
+		// 7.远程保存战绩
+		pushData2Server(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/result/save?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG + "&exp=" + exp
+						+ "&coin=" + gold + "&calorie=" + cals + "&level=" + ll
+						+ "&medals=" + medal + "&type=" + (isPK ? 1 : 0)
+						+ "&sporttype=" + csm.getType().getDisplayName()
+						+ "&sportname=" + csm.getSportName() + "&count="
+						+ times, ""), null);
+
+		return currentUser;
+	}
+
+	public void updateInformedMedal(MedalModel mm, boolean isInformed) {
+		getDbService().updateMedalInformed(mm, isInformed);
+	}
+
+	public void updateInformedLevel(LevelModel lm, boolean isInformed) {
+		getDbService().updateLevelInformed(lm, isInformed);
+	}
+
+	private void pushHitoryTodayRecord() {
+		int index = currentUser.getHistory().indexOf("\n");
+		if (index >= 0) {
+			String history = currentUser.getHistory().substring(0, index);
+			pushData2Server(
+					createRIM(RemoteRequestAction.GET,
+							remoteService.getBaseUrl()
+									+ "/fit/result/setlog?tokenid="
+									+ RemoteServiceImpl.TOKEN_TAG + "&log="
+									+ history, ""), null);
+		}
+
+		index = currentUser.getTodayRecord().lastIndexOf("\n");
+		if (index >= 0) {
+			String today = currentUser.getHistory().substring(0, index);
+			pushData2Server(
+					createRIM(
+							RemoteRequestAction.GET,
+							remoteService.getBaseUrl()
+									+ "/fit/result/setsportlog?tokenid="
+									+ RemoteServiceImpl.TOKEN_TAG + "&log="
+									+ today + "&date="
+									+ DateUtils.defaultFormat(new Date()), ""),
+					null);
+		}
+	}
+
+	/********** 异步方法/代发消息/获取最新数据 ****************/
+	// 同步用户基本信息
+	public void syncUserBaseInfo() {
+
+	}
+
+	// 获取某个用户公开数据,返回值：FitUserDataDto
+	public void getUserBaseInfoById(final Handler handler, String uid) {
+		generalQuery(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/user/visituser?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG + "&friendid=" + uid, ""),
+				new QueryCallBack() {
+
+					@Override
+					public void execute(String res) {
+						if (handler != null) {
+							Message msg = handler.obtainMessage();
+
+							if (res != null) {
+								TypeReference type = new TypeReference<FitUserDataDto>() {
+								};
+								try {
+									// 2.2get return value
+									FitUserDataDto result = mapper.readValue(res,
+											type);
+											msg.obj = result;
+								} catch (JsonParseException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								} catch (JsonMappingException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								} catch (IOException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								}
+							}else{
+								msg.obj = null;
+							}
+							
+
+							handler.sendMessage(msg);
+						}
+
+					}
+				});
+	}
+
+	// 获取某个用户历史公开战绩,返回值：List< FitFriendWardataDto >
+	public void getUserHistoryById(final Handler handler, String uid) {
+		generalQuery(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/user/getfriendward?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG + "&frienduserid=" + uid,
+						""), new QueryCallBack() {
+
+					@Override
+					public void execute(String res) {
+						if (handler != null) {
+							Message msg = handler.obtainMessage();
+							if (res != null) {
+								TypeReference type = new TypeReference<FitWardataDto>() {
+								};
+								try {
+									// 2.2get return value
+									FitWardataDto result = mapper.readValue(res,
+											type);
+											msg.obj = result;
+								} catch (JsonParseException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								} catch (JsonMappingException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								} catch (IOException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								}
+							}else{
+								msg.obj = null;
+							}
+
+							handler.sendMessage(msg);
+						}
+
+					}
+				});
+	}
+
+	// 获取某个用户今日战绩(拍档)，返回值：FitWardataDto
+	public void getUserTodayById(final Handler handler, String uid) {
+		generalQuery(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/result/wardata?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG + "&friendid=" + uid
+						+ "&day=0", ""), new QueryCallBack() {
+
+					@Override
+					public void execute(String res) {
+						if (handler != null) {
+							Message msg = handler.obtainMessage();
+							if (res != null) {
+								TypeReference type = new TypeReference<FitWardataDto>() {
+								};
+								try {
+									// 2.2get return value
+									FitWardataDto result = mapper.readValue(res,
+											type);
+											msg.obj = result;
+								} catch (JsonParseException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								} catch (JsonMappingException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								} catch (IOException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								}
+							}else{
+								msg.obj = null;
+							}
+
+							handler.sendMessage(msg);
+						}
+
+					}
+				});
+	}
+
+	// 获取个人主页访客列表
+	public void getVisitors(final Handler handler, String uid) {
+		// TODO:add params for RPC
+	}
+
+	/************** PK相关接口 ***********************/
+	// 获取比赛项目,返回值：List<CountSportModel>
+	public void getPKSports(final Handler handler) {
+		generalQuery(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/result/getsportsproject?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG, ""),
+				new QueryCallBack() {
+
+					@Override
+					public void execute(String res) {
+						if (handler != null) {
+							Message msg = handler.obtainMessage();
+							if (res != null) {
+								TypeReference type = new TypeReference<List<String>>() {
+								};
+								try {
+									// 2.2get return value
+									List<String> result = mapper.readValue(res,
+											type);
+									msg.obj = getDbService().getCountSportsByList(result);
+								} catch (JsonParseException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								} catch (JsonMappingException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								} catch (IOException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								}
+							}else{
+								msg.obj = null;
+							}
+
+							handler.sendMessage(msg);
+						}
+
+					}
+				});
+	}
+
+	// 获取昨日PK成绩及排名，返回值:FitMyRankDto
+	public void getYesterdayPK(final Handler handler) {
+		generalQuery(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/result/getranking?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG, ""),
+				new QueryCallBack() {
+
+					@Override
+					public void execute(String res) {
+						if (handler != null) {
+							Message msg = handler.obtainMessage();
+							if (res != null) {
+								TypeReference type = new TypeReference<FitMyRankDto>() {
+								};
+								try {
+									// 2.2get return value
+									FitMyRankDto result = mapper.readValue(res,
+											type);
+
+									msg.obj = result;
+									
+									// save pk results
+									getDbService().savePKRecord(result);
+								} catch (JsonParseException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								} catch (JsonMappingException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								} catch (IOException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								}
+							}else{
+								msg.obj = null;
+							}
+							
+
+							handler.sendMessage(msg);
+
+							
+						}
+
+					}
+				});
+	}
+
+	// 获取昨日PK英雄榜,返回值：List<FitRankDto>
+	public void getYesterdayPKList(final Handler handler, String cityId,
+			boolean gender) {
+		generalQuery(
+				createRIM(RemoteRequestAction.GET, remoteService.getBaseUrl()
+						+ "/fit/result/getrand?tokenid="
+						+ RemoteServiceImpl.TOKEN_TAG + "&cityid="
+						+ ((cityId != null) ? cityId : "") + "&sex="
+						+ ((gender) ? "男" : "女"), ""),
+				new QueryCallBack() {
+
+					@Override
+					public void execute(String res) {
+						if (handler != null) {
+							Message msg = handler.obtainMessage();
+							if (res != null) {
+								TypeReference type = new TypeReference<List<FitRankDto>>() {
+								};
+								try {
+									// 2.2get return value
+									List<FitRankDto> result = mapper.readValue(res,
+											type);
+											msg.obj = result;
+								} catch (JsonParseException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								} catch (JsonMappingException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								} catch (IOException e) {
+									Log.e(LOG_TAG, e.getMessage());
+								}
+							}else{
+								msg.obj = null;
+							}
+
+							handler.sendMessage(msg);
+						}
+
+					}
+				});
+	}
+
+	public void pushData2Server(final RemoteInvokeModel rim,
+			final PushCallBack pcb) {
+		Runnable run = new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					Return result = remoteService.pushData2Server(rim);
+					if (result.getHead() != null
+							&& result.getHead().getRet() == RemoteServiceImpl.RETURN_CODE_SUCCESS) {
+						rim.setStatus(RemoteInvokeStatus.SUCCEED);
+						try {
+							String response = mapper.writeValueAsString(result
+									.getData());
+							rim.setResponseBody(response);
+						} catch (JsonProcessingException e) {
+							e.printStackTrace();
+						}
+
+					} else {
+						rim.setStatus(RemoteInvokeStatus.FAILED);
+					}
+				} catch (ServiceException e) {
+					rim.setStatus(RemoteInvokeStatus.FAILED);
+				}
+				rim.setFinisheddAt(new Date());
+				getDbService().updateRemoteInvoke(rim);
+
+				// call back
+				if (pcb != null) {
+					pcb.execute(rim);
+				}
+			}
+		};
+		new Thread(run).start();
+	}
+
+	public void generalQuery(final RemoteInvokeModel rim,
+			final QueryCallBack query) {
+		Runnable run = new Runnable() {
+
+			@Override
+			public void run() {
+				Return result = null;
+				// 1.create a new record for RIM
+				rim.setPlanAt(new Date());
+				getDbService().createRemoteInvoke(rim);
+
+				try {
+					// 2.1.get return value
+					result = remoteService.generalQuery(rim);
+					rim.setStatus(RemoteInvokeStatus.SUCCEED);
+					if (result != null) {
+						String json = mapper.writeValueAsString(result
+								.getData());
+						rim.setResponseBody(json);
+					}
+
+				} catch (ServiceException se) {
+					rim.setStatus(RemoteInvokeStatus.FAILED);
+
+					RemoteInvokeModel rim2 = getDbService().queryLatestRIM(rim,
+							RemoteInvokeStatus.SUCCEED);
+					if (rim != null) {
+						TypeReference type = new TypeReference<Return>() {
+						};
+						try {
+							// 2.2get return value
+							result = mapper.readValue(rim2.getResponseBody(),
+									type);
+						} catch (JsonParseException e) {
+							Log.e(LOG_TAG, e.getMessage());
+						} catch (JsonMappingException e) {
+							Log.e(LOG_TAG, e.getMessage());
+						} catch (IOException e) {
+							Log.e(LOG_TAG, e.getMessage());
+						}
+					}
+				}
+
+				catch (JsonProcessingException jpe) {
+					jpe.printStackTrace();
+				}
+				// 3.save return value into RIM
+				rim.setFinisheddAt(new Date());
+				getDbService().updateRemoteInvoke(rim);
+
+				if(rim != null){
+				query.execute(rim.getResponseBody());
+				}else{
+					query.execute(null);
+				}
+			}
+		};
+		new Thread(run).start();
+	}
+
+	private RemoteInvokeModel createRIM(RemoteRequestAction action, String url,
+			String request) {
+		RemoteInvokeModel rim = new RemoteInvokeModel();
+		// add params for RPC
+		rim.setAction(action);
+		rim.setPlanAt(new Date());
+		rim.setRequestBody(request);
+		rim.setStatus(RemoteInvokeStatus.ONGOING);
+		rim.setUrl(url);
+
+		return rim;
+	}
+
+	public void close() {
+		if (dbService != null) {
+			dbService.close();
+			dbService = null;
+		}
+	}
+
+	public List<Province> getProvinces() {
+		if (provinces == null) {
+			try {
+				TypeReference type = new TypeReference<List<Province>>() {
+				};
+				provinces = mapper.readValue(
+						context.getAssets().open("area.json"), type);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return provinces;
+	}
+
+	public void setURL(String url) {
+		remoteService.setBaseUrl(url);
+	}
+
+	public String getURL() {
+		return remoteService.getBaseUrl();
+	}
+
+}

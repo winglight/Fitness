@@ -1,0 +1,71 @@
+package com.sythealth.custom.fragment;
+
+import java.util.Calendar;
+
+import com.sythealth.fitness.R;
+import com.sythealth.fitness.view.WheelView;
+
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.DatePickerDialog.OnDateSetListener;
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
+import android.view.ViewGroup;
+import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+
+public class UserInfoFragment extends Fragment {
+	private WheelView yearWv;
+	private WheelView monthWv;
+	private WheelView dayWv;
+	private Calendar calendar;
+	private String birthdayStr;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		calendar = Calendar.getInstance();
+	}
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		View view = inflater.inflate(R.layout.fragment_userinfo, container, false);
+		init(view);
+		return view;
+	}
+	private void init(View v){
+		//生日
+		EditText birthdayEt = (EditText)v.findViewById(R.id.fra_userinfo_birthday_et);
+		birthdayEt.setOnClickListener(new OnClickListener() {	
+			@Override
+			public void onClick(View arg0) {
+				new DatePickerDialog(getActivity(),
+						new OnDateSetListener() {							
+							@Override
+							public void onDateSet(DatePicker view, int year, int monthOfYear,
+									int dayOfMonth) {
+								monthOfYear = monthOfYear+1;
+								birthdayStr = year+"-"+monthOfYear+"-"+dayOfMonth;
+								Log.i("tag", "birthdayStr="+birthdayStr);
+							}
+						}, 
+						calendar.get(Calendar.YEAR), 
+						calendar.get(Calendar.MONTH), 
+						calendar.get(Calendar.DAY_OF_MONTH)).show();
+			}
+		});
+	}
+	public static UserInfoFragment newInstance(){
+		UserInfoFragment fragment = new UserInfoFragment();
+		Bundle bundle = new Bundle();
+		fragment.setArguments(bundle);
+		return fragment;
+	}
+}

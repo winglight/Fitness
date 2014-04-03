@@ -1,0 +1,48 @@
+package com.sythealth.fitness.db;
+
+import java.io.Serializable;
+
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+import com.sythealth.fitness.db.enumetype.MessageType;
+
+@DatabaseTable(tableName = "MESSAGE")
+public class MessageModel implements Serializable {
+
+public static final String FIELD_SERVERID = "SERVERID";
+	
+	@DatabaseField(generatedId = true)
+	private long id = -1;
+	@DatabaseField(columnName = FIELD_SERVERID)
+	private String serverId;// ID of server
+	@DatabaseField(columnName = FIELD_SERVERID)
+	private MessageType messageType;// message type
+	@DatabaseField(columnName = FIELD_SERVERID)
+	private String messageBody;// message body, JSON format
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
+	}
+	public String getServerId() {
+		return serverId;
+	}
+	public void setServerId(String serverId) {
+		this.serverId = serverId;
+	}
+	public MessageType getMessageType() {
+		return messageType;
+	}
+	public void setMessageType(MessageType messageType) {
+		this.messageType = messageType;
+	}
+	public String getMessageBody() {
+		return messageBody;
+	}
+	public void setMessageBody(String messageBody) {
+		this.messageBody = messageBody;
+	}
+	
+	
+}

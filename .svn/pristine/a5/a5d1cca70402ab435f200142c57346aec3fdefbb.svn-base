@@ -1,0 +1,84 @@
+package com.sythealth.fitness;
+
+import java.util.Date;
+
+import com.sythealth.fitness.db.DiaryModel;
+import com.sythealth.fitness.service.ServiceImpl;
+import com.sythealth.fitness.util.Utils;
+
+import android.os.Bundle;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+public class EditDiaryActivity extends BaseActivity {
+	private ServiceImpl service;
+	private boolean isPublic = true;
+	private Button privateBtn;
+	private Button publicBtn;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_editdiary);
+		service = getService();
+		init();
+		
+	}
+	private void init(){
+		//返回按钮
+		Button backBtn = (Button)findViewById(R.id.act_editdiary_back_btn);
+		backBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				onBackPressed();
+			}
+		});
+		//日记是否公开
+		privateBtn = (Button)findViewById(R.id.act_editdiary_private_btn);
+		publicBtn = (Button)findViewById(R.id.act_editdiary_public_btn);
+		privateBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				if(isPublic){
+					isPublic = false;
+					privateBtn.setBackgroundResource(R.drawable.diary_flag_true);
+					publicBtn.setBackgroundResource(R.drawable.diary_flag_false);
+				}
+			}
+		});
+		publicBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				if(!isPublic){
+					isPublic = true;
+					publicBtn.setBackgroundResource(R.drawable.diary_flag_true);
+					privateBtn.setBackgroundResource(R.drawable.diary_flag_false);
+				}
+			}
+		});
+		//日记内容
+		final EditText valueEt = (EditText)findViewById(R.id.act_editdiary_value_et);
+		//保存日记按钮
+		Button saveBtn = (Button)findViewById(R.id.act_editdiary_save_btn);
+		saveBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View v) {
+				if(!valueEt.getText().toString().equals("")){
+					Date date = new Date(System.currentTimeMillis());
+					DiaryModel diaryModel = new DiaryModel();
+					diaryModel.setPublic(isPublic);
+					diaryModel.setTextContent(valueEt.getText().toString());
+					diaryModel.setCreatedAt(date);
+					service.createDiaryRecord(diaryModel);
+					Toast.makeText(EditDiaryActivity.this, "保存成功",Toast.LENGTH_SHORT).show();
+					onBackPressed();
+				}else{
+					Toast.makeText(EditDiaryActivity.this, "请输入日记内容",Toast.LENGTH_SHORT).show();
+				}
+			}
+		});
+	}
+}

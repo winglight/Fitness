@@ -1,0 +1,17 @@
+package com.sythealth.fitness;
+
+import android.os.Bundle;
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.view.Menu;
+
+public class FirstStartActivity extends Activity {
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_firststart);
+		
+		
+	}
+}

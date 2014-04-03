@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/main_view_bg" >
+
+    <ImageView
+        android:id="@+id/act_main_user_icon"
+        android:layout_width="80dp"
+        android:layout_height="70dp"
+        android:layout_alignParentTop="true"
+        />
+
+    <LinearLayout
+        android:id="@+id/act_main_title_relativelayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/main_titlebar_bg" >
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="35dp"
+            android:layout_marginLeft="80dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/main_titlebar_right_bg"
+            android:orientation="horizontal" >
+
+            <LinearLayout
+                android:id="@+id/linearlayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:background="@drawable/main_gem_icon2"
+                android:orientation="horizontal" >
+                <TextView
+                    android:id="@+id/act_main_experience_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="32dp"
+                    android:text="6999/7000"
+                    android:textSize="10dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/act_main_level_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_toRightOf="@id/linearlayout"
+                android:textSize="13dp" 
+                android:textColor="@android:color/white"
+                />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:orientation="horizontal" >
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/main_gold_count_bg" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:textSize="10dp"
+                        android:id="@+id/act_main_gold_tv"
+                        android:layout_marginLeft="2dp"
+                         />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/main_gem_count_bg" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:textColor="@android:color/white"
+                        android:textSize="10dp" 
+                        android:id="@+id/act_main_gem_tv"
+                        android:layout_marginLeft="2dp"
+                        />
+                </LinearLayout>
+            </LinearLayout>
+        </RelativeLayout>
+    </LinearLayout>
+
+
+        <Button
+            android:id="@+id/act_main_task_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="50dp"
+            android:layout_marginTop="60dp"
+            android:background="@drawable/main_msg_bg"
+            android:text="5"
+            android:textColor="@android:color/white"
+            />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/main_titlebar_highlight" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/act_main_title_relativelayout"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/act_main_plan_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            />
+
+        <ProgressBar
+            android:id="@+id/act_main_plan_pb"
+            style="@style/main_plan_progress_style"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:progressDrawable="@drawable/main_calorie_proessbar_bg" />
+        <TextView 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/act_totle_weight"
+            android:id="@+id/act_main_total_plan_tv"
+            />
+        <TextView
+            android:id="@+id/act_main_calorie_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            />
+
+        <ProgressBar
+            android:id="@+id/act_main_calorie_pb"
+            style="@style/main_plan_progress_style"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:progressDrawable="@drawable/main_calorie_proessbar_bg" 
+            />
+        <TextView 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/act_totle_cal"
+            android:id="@+id/act_main_total_calorie_tv"
+            
+            />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical" >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/main_meal_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/main_meal_btn_state" />
+
+            <Button
+                android:id="@+id/main_box_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="80dp"
+                android:layout_marginTop="40dp"
+                android:background="@drawable/main_box_btn_state" />
+
+            <Button
+                android:id="@+id/main_pk_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="160dp"
+                android:layout_marginTop="60dp"
+                android:background="@drawable/main_pk_btn_state" />
+            <Button
+                android:id="@+id/main_store_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/main_store_btn_state" />
+        </RelativeLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:id="@+id/act_main_friend_msg_tv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:background="@drawable/main_community_btn_state" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/act_main_feedback_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:background="@drawable/main_feedback_btn_state" />
+
+    <Button
+        android:id="@+id/act_main_more_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="80dp"
+        android:background="@drawable/main_more_btn_state" />
+    <FrameLayout 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/act_main_title_relativelayout"
+       
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="20dp"
+        >
+
+        <ImageView
+            android:id="@+id/act_main_pal_icon"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="10dp"
+            />
+
+        <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/main_friend_icon"
+         />
+    </FrameLayout>
+</RelativeLayout>

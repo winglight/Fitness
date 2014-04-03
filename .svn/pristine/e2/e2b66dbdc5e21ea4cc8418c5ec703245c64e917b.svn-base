@@ -1,0 +1,125 @@
+package com.sythealth.fitness;
+
+import com.sythealth.custom.fragment.MedalFragment;
+import com.sythealth.custom.fragment.UserInfoFragment;
+import com.sythealth.fitness.db.UserModel;
+import com.sythealth.fitness.service.ServiceImpl;
+import com.sythealth.fitness.util.Utils;
+import com.umeng.analytics.MobclickAgent;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.os.Bundle;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.View.MeasureSpec;
+import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+public class PersonalHomeActivity extends BaseActivity {
+	public static final String MEDAL_FRAGMENT_TAG = "medalfragment";
+	public static final String USERINFO_FRAGMENT_TAG = "userinfofragment";
+	private boolean edit_tag = false;
+	private EditText editText;
+	private ServiceImpl service = getService();
+	private UserModel user;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_personalhome);
+		user = service.getCurrentUser();
+		init();
+		initTexttype();
+	}
+	private void init(){
+		//用户名称
+		TextView nameTv = (TextView)findViewById(R.id.act_personalhome_username_tv);
+		Utils.setTypeface2(this, nameTv);
+		nameTv.setText(user.getNickName());
+		//用户性别
+		//用户ID
+		Button idBtn = (Button)findViewById(R.id.act_personalhome_userid_btn);
+		Utils.setTypeface1(this, idBtn);
+		idBtn.setText(user.getId()+"");
+		//用户级别
+		Button levelBtn = (Button)findViewById(R.id.act_personalhome_level_btn);
+		Utils.setTypeface2(this, levelBtn);
+		levelBtn.setText(user.getLevel().getDisplayName());
+		//用户年龄
+		TextView ageTv = (TextView)findViewById(R.id.act_personalhome_age_tv);
+		Utils.setTypeface2(this, ageTv);
+	//	ageTv.setText(user.getAge());
+		//用户地址
+		TextView addressTv = (TextView)findViewById(R.id.act_personalhome_address_tv);
+		Utils.setTypeface2(this, addressTv);  
+		addressTv.setText(user.getCity());
+		//用户头像
+		ImageView userIcon_iv = (ImageView)findViewById(R.id.act_home_user_icon);
+		userIcon_iv.setImageBitmap(Utils.toRoundBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher)));
+		editText = (EditText)findViewById(R.id.act_personalhome_edit);
+		//勋章按钮
+		Button medal_btn = (Button)findViewById(R.id.act_personalhome_medal_btn);
+		medal_btn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				addFragment(MedalFragment.newInstance(), MEDAL_FRAGMENT_TAG,android.R.id.content);
+			}
+		});
+		//用户宣言
+		EditText declarationEt = (EditText)findViewById(R.id.act_personalhome_declaration_edit);
+		Utils.setTypeface2(this, declarationEt);
+		//编辑按钮
+		final Button editBtn = (Button)findViewById(R.id.act_personalhome_edit_btn);
+		editBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				if(edit_tag){
+					editText.setEnabled(false);
+					edit_tag = false;
+					editBtn.setBackgroundResource(R.drawable.home_edit_btn_state);
+				}else{
+					InputMethodManager inputMethodManager = (InputMethodManager)PersonalHomeActivity.this.getSystemService(Context.INPUT_METHOD_SERVICE);
+					inputMethodManager.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+					edit_tag = true;
+					editText.setEnabled(true);
+					editBtn.setBackgroundResource(R.drawable.home_save_btn_state);
+				}
+			}
+		});	
+		//档案按钮
+		Button filesBtn = (Button)findViewById(R.id.act_personalhome_files_btn);
+		filesBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				Intent intent = new Intent(PersonalHomeActivity.this, UserInfoActivity.class);
+				startActivity(intent);
+				overridePendingTransition(R.anim.push_right_in,R.anim.push_left_out);
+			}
+		});
+		//返回按钮
+		Button backButton = (Button)findViewById(R.id.act_personalhome_back_btn);
+		Utils.goBack(backButton, this, MainActivity.class);
+	}
+	@Override
+	public void onResume() {
+		super.onResume();
+		MobclickAgent.onResume(this);
+	}
+	@Override
+	public void onPause() {
+		super.onPause();
+		MobclickAgent.onPause(this);
+	}
+	private void initTexttype(){
+		TextView titleTv = (TextView)findViewById(R.id.act_personalhome_title_tv);
+		Utils.setTypeface2(this, titleTv);
+		TextView idTv = (TextView)findViewById(R.id.act_personalhome_username_tv);
+		Utils.setTypeface2(this, idTv);
+	}
+}

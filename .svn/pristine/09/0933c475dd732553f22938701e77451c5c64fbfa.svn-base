@@ -1,0 +1,190 @@
+package com.sythealth.fitness.service;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+
+import android.content.Context;
+import android.util.Log;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.Where;
+import com.sythealth.fitness.db.CommonDBOpenHelper;
+import com.sythealth.fitness.db.UserDBOpenHelper;
+import com.sythealth.fitness.db.UserModel;
+
+public class DBServiceImpl implements IDBService {
+
+	private static final String LOG_TAG = "DBServiceImpl";
+
+	private UserDBOpenHelper userHelper;
+	private CommonDBOpenHelper commonHelper;
+	private ObjectMapper mapper = new ObjectMapper();
+	private UserModel currentUser;
+
+	private DBServiceImpl(Context context) {
+		this.commonHelper = CommonDBOpenHelper.getHelper(context);
+		this.userHelper = UserDBOpenHelper.getHelper(context);
+	}
+
+	public static IDBService getInstance(Context context) {
+		return new DBServiceImpl(context);
+	}
+ 
+	@Override
+	public void close() {
+		if (userHelper != null || commonHelper != null) {
+			OpenHelperManager.releaseHelper();
+			userHelper = null;
+			commonHelper = null;
+		}
+	}
+
+	public UserDBOpenHelper getUserHelper() {
+		return userHelper;
+	}
+
+	public CommonDBOpenHelper getCommonHelper() {
+		return commonHelper;
+	}
+
+	@Override
+	public UserModel queryUserByEmail(String email, String... password) {
+		try {
+			Dao<UserModel, Integer> udao = userHelper.getUserDAO();
+
+			QueryBuilder<UserModel, Integer> queryBuilder = udao.queryBuilder();
+			Where<UserModel, Integer> where = queryBuilder.where();
+			where.eq(UserModel.FIELD_EMAIL, email);
+			if (password != null) {
+				where.and();
+				where.eq(UserModel.FIELD_PASSWORD, password[0]);
+			}
+
+			return udao.queryForFirst(queryBuilder.prepare());
+
+		} catch (SQLException e) {
+
+			Log.e(LOG_TAG, e.getMessage());
+		}
+		return null;
+	}
+
+	@Override
+	public UserModel queryUserByPhone(String phone, String... password) {
+		try {
+			Dao<UserModel, Integer> udao = userHelper.getUserDAO();
+
+			QueryBuilder<UserModel, Integer> queryBuilder = udao.queryBuilder();
+			Where<UserModel, Integer> where = queryBuilder.where();
+			where.eq(UserModel.FIELD_PHONE_NUMBER, phone);
+			if (password != null) {
+				where.and();
+				where.eq(UserModel.FIELD_PASSWORD, password[0]);
+			}
+
+			return udao.queryForFirst(queryBuilder.prepare());
+
+		} catch (SQLException e) {
+
+			Log.e(LOG_TAG, e.getMessage());
+		}
+		return null;
+	}
+
+	@Override
+	public boolean createUser(UserModel user) {
+		try {
+			Dao<UserModel, Integer> udao = userHelper.getUserDAO();
+
+			// 1.query user by phone and email
+			if (checkDuplicatedUser(user)) {
+
+			} else {
+				udao.create(user);
+			}
+
+			return true;
+		} catch (SQLException e) {
+
+			Log.e(LOG_TAG, e.getMessage());
+		}
+		return false;
+	}
+	
+	public boolean checkDuplicatedUser(UserModel user) {
+		if (user == null)
+			return false;
+		try {
+			Dao<UserModel, Integer> udao = userHelper.getUserDAO();
+
+			if (user.getEmail() != null && user.getEmail().length() > 0) {
+				List<UserModel> list;
+
+				list = udao.queryForEq(UserModel.FIELD_EMAIL, user.getEmail());
+
+				if (list != null && list.size() > 0) {
+					return true;
+				}
+			}
+		} catch (SQLException e) {
+			Log.e(LOG_TAG, "DB error:" + e.getMessage());
+		}
+		return false;
+	}
+
+	@Override
+	public void setCurrentUser(UserModel user) {
+		this.currentUser = user;
+
+	}
+
+	@Override
+	public UserModel queryUserBySid(String sid) {
+		try {
+			Dao<UserModel, Integer> udao = userHelper.getUserDAO();
+
+			List<UserModel> list = udao.queryForEq(UserModel.FIELD_SID, sid);
+
+			if (list != null && list.size() > 0) {
+				return list.get(0);
+			}
+
+		} catch (SQLException e) {
+
+			Log.e(LOG_TAG, e.getMessage());
+		}
+		return null;
+	}
+	
+	@Override
+	public UserModel queryDefaultUser() {
+		try {
+			Dao<UserModel, Integer> udao = userHelper.getUserDAO();
+
+			List<UserModel> list = udao.queryForAll();
+
+			if (list != null && list.size() > 0) {
+				return list.get(0);
+			}
+
+		} catch (SQLException e) {
+
+			Log.e(LOG_TAG, e.getMessage());
+		}
+		return null;
+	}
+
+
+}

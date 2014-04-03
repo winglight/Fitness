@@ -1,0 +1,209 @@
+package com.sythealth.fitness;
+import com.sythealth.custom.fragment.LevelListFragment;
+import com.sythealth.custom.fragment.MedalListFragment;
+import com.sythealth.custom.fragment.VisitorListFragment;
+import com.sythealth.fitness.db.UserModel;
+import com.sythealth.fitness.service.ServiceImpl;
+import com.sythealth.fitness.util.Utils;
+import com.umeng.analytics.MobclickAgent;
+
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+public class PersonalHomeActivity extends BaseActivity {
+	public static final String MEDALLIST_FRAGMENT_TAG = "MedalListFragment";
+	public static final String USERINFO_FRAGMENT_TAG = "UserInfoFragment";
+	public static final String LEVELLIST_FRAGMENT_TAG = "LevelListFragment";
+	public static final String VISITORLIST_FRAGMENT_TAG = "VisitorListFragment";
+	public static final String MYDIARY_FRAGMENT_TAG = "MyDiaryFragment";
+	private boolean edit_tag = false;
+	private EditText editText;
+	private ServiceImpl service = getService();
+	private UserModel user;
+	private int step = 0;
+	private Fragment fragment;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_personalhome);
+		user = service.getCurrentUser();
+		init();
+		initTexttype();
+	}
+	private void init(){
+		//用户名称
+		TextView nameTv = (TextView)findViewById(R.id.act_personalhome_username_tv);
+		Utils.setTypeface2(this, nameTv);
+		nameTv.setText(user.getNickName());
+		//用户性别
+		//用户ID
+		Button idBtn = (Button)findViewById(R.id.act_personalhome_userid_btn);
+		Utils.setTypeface1(this, idBtn);
+		idBtn.setText(user.getId()+"");    
+		//用户级别
+		Button levelBtn = (Button)findViewById(R.id.act_personalhome_level_btn);
+		levelBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				addFragment(LevelListFragment.newInstance(),LEVELLIST_FRAGMENT_TAG, android.R.id.content);
+			}
+		});
+		Utils.setTypeface2(this, levelBtn);
+		levelBtn.setText(user.getLevel().getName());
+		//用户年龄
+		TextView ageTv = (TextView)findViewById(R.id.act_personalhome_age_tv);
+		Utils.setTypeface2(this, ageTv);
+	//	ageTv.setText(user.getAge());
+		//用户地址
+		TextView addressTv = (TextView)findViewById(R.id.act_personalhome_address_tv);
+		Utils.setTypeface2(this, addressTv);  
+		addressTv.setText(user.getCity());
+		//用户头像
+		ImageView userIcon_iv = (ImageView)findViewById(R.id.act_home_user_icon);
+		userIcon_iv.setImageBitmap(Utils.toRoundBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher)));
+		editText = (EditText)findViewById(R.id.act_personalhome_declaration_edit);
+		//勋章按钮
+		Button medal_btn = (Button)findViewById(R.id.act_personalhome_medal_btn);
+		medal_btn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				addFragment(MedalListFragment.newInstance(), MEDALLIST_FRAGMENT_TAG,android.R.id.content);
+				
+			}
+		});
+		//用户宣言
+		EditText declarationEt = (EditText)findViewById(R.id.act_personalhome_declaration_edit);
+		declarationEt.setText(user.getDeclaration());
+		Utils.setTypeface2(this, declarationEt);
+		//编辑按钮
+		final Button editBtn = (Button)findViewById(R.id.act_personalhome_edit_btn);
+		editBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				if(edit_tag){
+					editText.setEnabled(false);
+					edit_tag = false;
+					editBtn.setBackgroundResource(R.drawable.home_edit_btn_state);
+					if(!editText.getText().toString().equals("")){
+						service.saveDeclare(editText.getText().toString());
+					}
+				}else{
+					InputMethodManager inputMethodManager = (InputMethodManager)PersonalHomeActivity.this.getSystemService(Context.INPUT_METHOD_SERVICE);
+					inputMethodManager.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+					edit_tag = true;
+					editText.setEnabled(true);
+					editBtn.setBackgroundResource(R.drawable.home_save_btn_state);
+				}
+			}
+		});	
+		//档案按钮
+		Button filesBtn = (Button)findViewById(R.id.act_personalhome_files_btn);
+		filesBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				Intent intent = new Intent(PersonalHomeActivity.this, UserInfoActivity.class);
+				startActivity(intent);
+				finish();
+				overridePendingTransition(R.anim.push_right_in,R.anim.push_left_out);
+			}
+		});
+		//返回按钮
+		Button backBtn = (Button)findViewById(R.id.act_personalhome_back_btn);
+		Utils.goBack(backBtn, this, MainActivity.class);
+		//访客清单按钮
+		Button visitorlistBtn = (Button)findViewById(R.id.act_personalhome_list_btn);
+		visitorlistBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				addFragment(VisitorListFragment.newInstance(), VISITORLIST_FRAGMENT_TAG,android.R.id.content);
+			}
+		});
+		//我的日记按钮
+		Button diaryBtn = (Button)findViewById(R.id.act_personalhome_diary_btn);
+		diaryBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				Intent intent = new Intent();
+				intent.setClass(PersonalHomeActivity.this, DiaryActivity.class);
+				startActivity(intent);
+			}
+		});
+		//瘦身方案按钮
+		Button caseBtn = (Button)findViewById(R.id.act_personalhome_case_btn);
+		caseBtn.setOnClickListener(new OnClickListener() {			
+			@Override
+			public void onClick(View arg0) {
+				Intent intent = new Intent();
+				intent.setClass(PersonalHomeActivity.this, FitnessCaseActivity.class);
+				startActivity(intent);
+			}
+		});
+	}
+	@Override
+	public void onResume() {
+		super.onResume();
+		MobclickAgent.onResume(this);
+	}
+	@Override
+	public void onPause() {
+		super.onPause();
+		MobclickAgent.onPause(this);
+	}
+	private void initTexttype(){
+		TextView titleTv = (TextView)findViewById(R.id.act_personalhome_title_tv);
+		Utils.setTypeface2(this, titleTv);
+		TextView idTv = (TextView)findViewById(R.id.act_personalhome_username_tv);
+		Utils.setTypeface2(this, idTv);
+	}
+	/**
+	 * 重写系统返回按键
+	 */
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+			if (step == 0) {
+				Intent intent = new Intent(this, MainActivity.class);
+				startActivity(intent);
+				finish();
+				overridePendingTransition(R.anim.push_left_in,R.anim.push_right_out);
+			} else if (step > 0) {
+				step--;
+				backFragment(getFragment());
+			}
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+	public int getStep() {
+		return step;
+	}
+
+	public void setStep(int step) {
+		this.step = step;
+	}
+	public void addStep() {
+		this.step = step + 1;
+	}
+	public Fragment getFragment() {
+		return fragment;
+	}
+	public void setFragment(Fragment fragment) {
+		this.fragment = fragment;
+	}
+	public void decreaseStep(){
+		this.step = step -1;
+	}
+}

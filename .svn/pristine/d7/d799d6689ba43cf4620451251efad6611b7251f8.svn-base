@@ -1,0 +1,91 @@
+package com.sythealth.fitness.json.result;
+
+import java.util.List;
+
+/**
+ * 战绩记录dto
+ * @author pc_02
+ *
+ */
+public class FitWardataDto {
+	
+	public static final String COIN_FIELD = "coin";
+	public static final String WIGHT_FIELD = "weight";
+	public static final String EXP_FIELD = "exp";
+	public static final String CALORIE_FIELD = "calorie";
+	public static final String LEVELLIST_FIELD = "levelList";
+	public static final String MEDALLIST_FIELD = "medalList";
+	public static final String SPORTLIST_FIELD = "sportList";
+	
+	int coin;		//当天金币
+	int weight;		//当天减去体重
+	int exp;		//当天获得经验
+	int calorie;	//当天减去热量
+	List<FitLevelDto> levelList;		//升级记录
+	List<FitMedalDto> medalList;		//获得勋章记录
+	List<FitSportDto> sportList;		//运动记录
+	public int getCoin() {
+		return coin;
+	}
+	public void setCoin(int coin) {
+		this.coin = coin;
+	}
+	public int getWeight() {
+		return weight;
+	}
+	public void setWeight(int weight) {
+		this.weight = weight;
+	}
+	public int getExp() {
+		return exp;
+	}
+	public void setExp(int exp) {
+		this.exp = exp;
+	}
+	public int getCalorie() {
+		return calorie;
+	}
+	public void setCalorie(int calorie) {
+		this.calorie = calorie;
+	}
+	public List<FitLevelDto> getLevelList() {
+		return levelList;
+	}
+	public void setLevelList(List<FitLevelDto> levelList) {
+		this.levelList = levelList;
+	}
+	public List<FitMedalDto> getMedalList() {
+		return medalList;
+	}
+	public void setMedalList(List<FitMedalDto> medalList) {
+		this.medalList = medalList;
+	}
+	public List<FitSportDto> getSportList() {
+		return sportList;
+	}
+	public void setSportList(List<FitSportDto> sportList) {
+		this.sportList = sportList;
+	}
+	public FitWardataDto(int coin, int weight, int exp, int calorie,
+			List<FitLevelDto> levelList, List<FitMedalDto> medalList,
+			List<FitSportDto> sportList) {
+		super();
+		this.coin = coin;
+		this.weight = weight;
+		this.exp = exp;
+		this.calorie = calorie;
+		this.levelList = levelList;
+		this.medalList = medalList;
+		this.sportList = sportList;
+	}
+	public FitWardataDto() {
+		super();
+	}
+	@Override
+	public String toString() {
+		return "FitWardataDto [coin=" + coin + ", weight=" + weight + ", exp="
+				+ exp + ", calorie=" + calorie + ", levelList=" + levelList
+				+ ", medalList=" + medalList + ", sportList=" + sportList + "]";
+	}
+	
+}

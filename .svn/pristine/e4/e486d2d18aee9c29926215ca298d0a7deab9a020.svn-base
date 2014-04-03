@@ -1,0 +1,19 @@
+package com.sythealth.fitness.db.enumetype;
+
+public enum LevelType {
+
+	L1("一级"),
+	L2("二级"),
+	L3("三级"),
+	L4("四级");
+
+	private final String displayName;
+
+	LevelType(String displayName) {
+		this.displayName = displayName;
+	}
+
+	public String getDisplayName() {
+		return displayName;
+	}
+}

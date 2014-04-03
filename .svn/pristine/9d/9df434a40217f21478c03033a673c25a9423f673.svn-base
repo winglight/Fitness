@@ -1,0 +1,32 @@
+package com.sythealth.fitness.service;
+
+import java.util.List;
+
+import com.sythealth.fitness.db.DiaryModel;
+import com.sythealth.fitness.db.RemoteInvokeModel;
+import com.sythealth.fitness.db.UserModel;
+import com.sythealth.fitness.db.WeightModel;
+import com.sythealth.fitness.db.enumetype.RemoteInvokeStatus;
+
+public interface IDBService {
+
+	public void close();
+	
+	public void setCurrentUser(UserModel user);
+	
+	//users
+	public UserModel queryUserByEmail(String email, String...password);
+	public UserModel queryUserByPhone(String phone, String...password);
+	public UserModel queryUserBySid(String sid);
+	public UserModel queryDefaultUser();
+	public boolean createUser(UserModel user);
+	public boolean updateUser(UserModel user);
+	
+	public boolean createWeightRecord(WeightModel weight);
+	
+	public boolean createDiaryRecord(DiaryModel diary);
+	
+	public RemoteInvokeModel queryLatestRIM(RemoteInvokeModel rim, RemoteInvokeStatus status);
+	public boolean createRemoteInvoke(RemoteInvokeModel rim);
+	public boolean updateRemoteInvoke(RemoteInvokeModel rim);
+}

@@ -1,0 +1,621 @@
+package com.sythealth.fitness.db;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
+import android.util.Log;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.field.ForeignCollectionField;
+import com.j256.ormlite.table.DatabaseTable;
+import com.sythealth.fitness.db.enumetype.BodyType;
+import com.sythealth.fitness.db.enumetype.LevelType;
+import com.sythealth.fitness.db.enumetype.TasteType;
+
+@DatabaseTable(tableName = "USER")
+public class UserModel implements Serializable {
+
+	public static final String TAG = "UserModel";
+	
+	public static final String FIELD_REFERALID = "REFERALID";
+	public static final String FIELD_NICKNAME = "NICKNAME";
+	public static final String FIELD_EMAIL = "EMAIL";
+	public static final String FIELD_PHONE_NUMBER = "PHONE_NUMBER";
+	public final static String FIELD_PASSWORD = "PASSWORD";
+	public final static String FIELD_SID = "DEVICE_ID";
+	public final static String FIELD_AVAILABLE_LIST = "AVAILABLE";
+	public final static String FIELD_MENU = "MENUS";
+	public final static String FIELD_SMART_PARAMS = "SMART_PARAMS";
+	public final static String FIELD_OUT_PARAMS = "OUT_PARAMS";
+	public final static String FIELD_FOOD_LIST = "FOOD_LIST";
+	public final static String FIELD_FOOD_LIST_DESC = "FOOD_LIST_DESC";
+	public final static String FIELD_OUTSIDE_HISTORY = "OUTSIDE_HISTORY";
+
+	@DatabaseField(generatedId = true)
+	private long id = -1;
+	@DatabaseField(columnName = FIELD_REFERALID)
+	private String referalId;// ID of invitor
+	@DatabaseField( columnName = FIELD_NICKNAME)
+	private String nickName;//昵称
+	@DatabaseField(columnName = FIELD_EMAIL)
+	private String email;
+	@DatabaseField(columnName = FIELD_PHONE_NUMBER)
+	private String avatar; //file name of the head photo
+	@DatabaseField(columnName = FIELD_PHONE_NUMBER)
+	private String animation; //file name of the animation
+	@DatabaseField(columnName = FIELD_PASSWORD)
+	private String password;
+	@DatabaseField(columnName = FIELD_SID)
+	private String sid;
+	@DatabaseField(columnName = FIELD_SMART_PARAMS)
+	private boolean gender; //性别
+	@DatabaseField(columnName = FIELD_OUT_PARAMS)
+	private int age;//年龄
+	@DatabaseField(columnName = FIELD_FOOD_LIST)
+	private int height;//身高
+	@DatabaseField(columnName = FIELD_FOOD_LIST_DESC)
+	private String city;//城市
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int bust;//胸围
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int waist;//腰围
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int hips;//臀围
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int thigh;//大腿围
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int calf;//小腿围
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int hipup;//上臀围
+	@DatabaseField(columnName = FIELD_AVAILABLE_LIST)
+	private String declaration;//瘦身宣言
+	@DatabaseField(columnName = FIELD_AVAILABLE_LIST)
+	private boolean isPublicAchievement;//公开战绩
+	@DatabaseField(columnName = FIELD_AVAILABLE_LIST)
+	private TasteType taste;//饮食偏好
+	@DatabaseField(columnName = FIELD_AVAILABLE_LIST)
+	private String disease;//疾病信息
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int experience;//经验值
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int gold;//金币数
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int gem;//宝石数
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private Date planBeginDate;//计划开始日期
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private Date planEndDate;//计划结束日期
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private double planBeginWeight;//计划初始体重
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private double planEndWeight;//计划目标体重
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private double currentWeight;//当前体重
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private String partnerId;//拍档ID
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private String partnerName;//拍档昵称
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private String partnerAvatar;//拍档头像
+	
+	//历史战绩
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private String history;//历史记录
+	//今日战绩
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int todayLossFat;//今日消耗热量(千卡)
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int todayGold;//今日获得金币
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int todayExperience;//今日获得经验值
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int todayRecord;//今日运动记录
+	//PK战绩
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int pkTotalGold;//累积奖金
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int pkTopPosition;//最高排名
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private String pkYesterdayDetail;//昨日成绩
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private String pkHistory;//历史成绩
+	
+	//one-to-many
+	private List<FriendModel> friendList;//我的好友
+	private List<MedalModel> medalList;//我当前的勋章
+	private List<WeightModel> weightList;//我的体重历史记录
+	private List<PropModel> propList;//我的所有道具
+	private List<DiaryModel> diaryList;//我的日记(含回复)
+	private List<SportModel> sportList;//个性运动
+	private List<MessageModel> messageList;//我的消息(系统消息,业务消息,成就消息)
+	
+	// Non-DB field
+	private double bmi;
+	//当前等级
+	private LevelType level;
+	//当前体型
+	private BodyType bodyType;
+	//标准体重
+	private String standardWeight;
+	//最美体重(女)
+	private String beautyWeight;
+	//每日运动消耗热量
+	private String dailyOutCals;
+	//每日饮食摄入热量
+	private String dailyInCals;
+
+	private ObjectMapper mapper = new ObjectMapper();
+
+	public UserModel() {
+
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
+	}
+
+	public String getReferalId() {
+		return referalId;
+	}
+
+	public void setReferalId(String referalId) {
+		this.referalId = referalId;
+	}
+
+	public String getNickName() {
+		return nickName;
+	}
+
+	public void setNickName(String nickName) {
+		this.nickName = nickName;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getAvatar() {
+		return avatar;
+	}
+
+	public void setAvatar(String avatar) {
+		this.avatar = avatar;
+	}
+
+	public String getAnimation() {
+		return animation;
+	}
+
+	public void setAnimation(String animation) {
+		this.animation = animation;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getSid() {
+		return sid;
+	}
+
+	public void setSid(String sid) {
+		this.sid = sid;
+	}
+
+	public boolean isGender() {
+		return gender;
+	}
+
+	public void setGender(boolean gender) {
+		this.gender = gender;
+	}
+
+	public int getAge() {
+		return age;
+	}
+
+	public void setAge(int age) {
+		this.age = age;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
+	public void setHeight(int height) {
+		this.height = height;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	public int getBust() {
+		return bust;
+	}
+
+	public void setBust(int bust) {
+		this.bust = bust;
+	}
+
+	public int getWaist() {
+		return waist;
+	}
+
+	public void setWaist(int waist) {
+		this.waist = waist;
+	}
+
+	public int getHips() {
+		return hips;
+	}
+
+	public void setHips(int hips) {
+		this.hips = hips;
+	}
+
+	public int getThigh() {
+		return thigh;
+	}
+
+	public void setThigh(int thigh) {
+		this.thigh = thigh;
+	}
+
+	public int getCalf() {
+		return calf;
+	}
+
+	public void setCalf(int calf) {
+		this.calf = calf;
+	}
+
+	public int getHipup() {
+		return hipup;
+	}
+
+	public void setHipup(int hipup) {
+		this.hipup = hipup;
+	}
+
+	public String getDeclaration() {
+		return declaration;
+	}
+
+	public void setDeclaration(String declaration) {
+		this.declaration = declaration;
+	}
+
+	public boolean isPublicAchievement() {
+		return isPublicAchievement;
+	}
+
+	public void setPublicAchievement(boolean isPublicAchievement) {
+		this.isPublicAchievement = isPublicAchievement;
+	}
+
+	public TasteType getTaste() {
+		return taste;
+	}
+
+	public void setTaste(TasteType taste) {
+		this.taste = taste;
+	}
+
+	public String getDisease() {
+		return disease;
+	}
+
+	public void setDisease(String disease) {
+		this.disease = disease;
+	}
+
+	public int getExperience() {
+		return experience;
+	}
+
+	public void setExperience(int experience) {
+		this.experience = experience;
+	}
+
+	public int getGold() {
+		return gold;
+	}
+
+	public void setGold(int gold) {
+		this.gold = gold;
+	}
+
+	public int getGem() {
+		return gem;
+	}
+
+	public void setGem(int gem) {
+		this.gem = gem;
+	}
+
+	public double getBmi() {
+		return bmi;
+	}
+
+	public void setBmi(double bmi) {
+		this.bmi = bmi;
+	}
+
+	public LevelType getLevel() {
+		return level;
+	}
+
+	public void setLevel(LevelType level) {
+		this.level = level;
+	}
+
+	public BodyType getBodyType() {
+		return bodyType;
+	}
+
+	public void setBodyType(BodyType bodyType) {
+		this.bodyType = bodyType;
+	}
+
+	public ObjectMapper getMapper() {
+		return mapper;
+	}
+
+	public void setMapper(ObjectMapper mapper) {
+		this.mapper = mapper;
+	}
+
+	public Date getPlanBeginDate() {
+		return planBeginDate;
+	}
+
+	public void setPlanBeginDate(Date planBeginDate) {
+		this.planBeginDate = planBeginDate;
+	}
+
+	public Date getPlanEndDate() {
+		return planEndDate;
+	}
+
+	public void setPlanEndDate(Date planEndDate) {
+		this.planEndDate = planEndDate;
+	}
+
+	public double getPlanBeginWeight() {
+		return planBeginWeight;
+	}
+
+	public void setPlanBeginWeight(double planBeginWeight) {
+		this.planBeginWeight = planBeginWeight;
+	}
+
+	public double getPlanEndWeight() {
+		return planEndWeight;
+	}
+
+	public void setPlanEndWeight(double planEndWeight) {
+		this.planEndWeight = planEndWeight;
+	}
+
+	public double getCurrentWeight() {
+		return currentWeight;
+	}
+
+	public void setCurrentWeight(double currentWeight) {
+		this.currentWeight = currentWeight;
+	}
+
+	public String getPartnerId() {
+		return partnerId;
+	}
+
+	public void setPartnerId(String partnerId) {
+		this.partnerId = partnerId;
+	}
+
+	public String getPartnerName() {
+		return partnerName;
+	}
+
+	public void setPartnerName(String partnerName) {
+		this.partnerName = partnerName;
+	}
+
+	public String getPartnerAvatar() {
+		return partnerAvatar;
+	}
+
+	public void setPartnerAvatar(String partnerAvatar) {
+		this.partnerAvatar = partnerAvatar;
+	}
+
+	public String getHistory() {
+		return history;
+	}
+
+	public void setHistory(String history) {
+		this.history = history;
+	}
+
+	public int getTodayLossFat() {
+		return todayLossFat;
+	}
+
+	public void setTodayLossFat(int todayLossFat) {
+		this.todayLossFat = todayLossFat;
+	}
+
+	public int getTodayGold() {
+		return todayGold;
+	}
+
+	public void setTodayGold(int todayGold) {
+		this.todayGold = todayGold;
+	}
+
+	public int getTodayExperience() {
+		return todayExperience;
+	}
+
+	public void setTodayExperience(int todayExperience) {
+		this.todayExperience = todayExperience;
+	}
+
+	public int getTodayRecord() {
+		return todayRecord;
+	}
+
+	public void setTodayRecord(int todayRecord) {
+		this.todayRecord = todayRecord;
+	}
+
+	public int getPkTotalGold() {
+		return pkTotalGold;
+	}
+
+	public void setPkTotalGold(int pkTotalGold) {
+		this.pkTotalGold = pkTotalGold;
+	}
+
+	public int getPkTopPosition() {
+		return pkTopPosition;
+	}
+
+	public void setPkTopPosition(int pkTopPosition) {
+		this.pkTopPosition = pkTopPosition;
+	}
+
+	public String getPkYesterdayDetail() {
+		return pkYesterdayDetail;
+	}
+
+	public void setPkYesterdayDetail(String pkYesterdayDetail) {
+		this.pkYesterdayDetail = pkYesterdayDetail;
+	}
+
+	public String getPkHistory() {
+		return pkHistory;
+	}
+
+	public void setPkHistory(String pkHistory) {
+		this.pkHistory = pkHistory;
+	}
+
+	public List<FriendModel> getFriendList() {
+		return friendList;
+	}
+
+	public void setFriendList(List<FriendModel> friendList) {
+		this.friendList = friendList;
+	}
+
+	public List<MedalModel> getMedalList() {
+		return medalList;
+	}
+
+	public void setMedalList(List<MedalModel> medalList) {
+		this.medalList = medalList;
+	}
+
+	public List<WeightModel> getWeightList() {
+		return weightList;
+	}
+
+	public void setWeightList(List<WeightModel> weightList) {
+		this.weightList = weightList;
+	}
+
+	public List<PropModel> getPropList() {
+		return propList;
+	}
+
+	public void setPropList(List<PropModel> propList) {
+		this.propList = propList;
+	}
+
+	public List<DiaryModel> getDiaryList() {
+		return diaryList;
+	}
+
+	public void setDiaryList(List<DiaryModel> diaryList) {
+		this.diaryList = diaryList;
+	}
+
+	public List<SportModel> getSportList() {
+		return sportList;
+	}
+
+	public void setSportList(List<SportModel> sportList) {
+		this.sportList = sportList;
+	}
+
+	public List<MessageModel> getMessageList() {
+		return messageList;
+	}
+
+	public void setMessageList(List<MessageModel> messageList) {
+		this.messageList = messageList;
+	}
+
+	public String getStandardWeight() {
+		return standardWeight;
+	}
+
+	public void setStandardWeight(String standardWeight) {
+		this.standardWeight = standardWeight;
+	}
+
+	public String getBeautyWeight() {
+		return beautyWeight;
+	}
+
+	public void setBeautyWeight(String beautyWeight) {
+		this.beautyWeight = beautyWeight;
+	}
+
+	public String getDailyOutCals() {
+		return dailyOutCals;
+	}
+
+	public void setDailyOutCals(String dailyOutCals) {
+		this.dailyOutCals = dailyOutCals;
+	}
+
+	public String getDailyInCals() {
+		return dailyInCals;
+	}
+
+	public void setDailyInCals(String dailyInCals) {
+		this.dailyInCals = dailyInCals;
+	}
+
+
+
+}

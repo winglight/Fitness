@@ -1,0 +1,342 @@
+package com.sythealth.fitness.db;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
+import android.util.Log;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.field.ForeignCollectionField;
+import com.j256.ormlite.table.DatabaseTable;
+import com.sythealth.fitness.db.enumetype.BodyType;
+import com.sythealth.fitness.db.enumetype.LevelType;
+import com.sythealth.fitness.db.enumetype.TasteType;
+
+@DatabaseTable(tableName = "USER")
+public class UserModel implements Serializable {
+
+	public static final String TAG = "UserModel";
+	
+	public static final String FIELD_REFERALID = "REFERALID";
+	public static final String FIELD_NICKNAME = "NICKNAME";
+	public static final String FIELD_EMAIL = "EMAIL";
+	public static final String FIELD_PHONE_NUMBER = "PHONE_NUMBER";
+	public final static String FIELD_PASSWORD = "PASSWORD";
+	public final static String FIELD_SID = "DEVICE_ID";
+	public final static String FIELD_AVAILABLE_LIST = "AVAILABLE";
+	public final static String FIELD_MENU = "MENUS";
+	public final static String FIELD_SMART_PARAMS = "SMART_PARAMS";
+	public final static String FIELD_OUT_PARAMS = "OUT_PARAMS";
+	public final static String FIELD_FOOD_LIST = "FOOD_LIST";
+	public final static String FIELD_FOOD_LIST_DESC = "FOOD_LIST_DESC";
+	public final static String FIELD_OUTSIDE_HISTORY = "OUTSIDE_HISTORY";
+
+	@DatabaseField(generatedId = true)
+	private long id = -1;
+	@DatabaseField(columnName = FIELD_REFERALID)
+	private String referalId;// ID of invitor
+	@DatabaseField( columnName = FIELD_NICKNAME)
+	private String nickName;
+	@DatabaseField(columnName = FIELD_EMAIL)
+	private String email;
+	@DatabaseField(columnName = FIELD_PHONE_NUMBER)
+	private String avatar; //file name of the head photo
+	@DatabaseField(columnName = FIELD_PHONE_NUMBER)
+	private String animation; //file name of the animation
+	@DatabaseField(columnName = FIELD_PASSWORD)
+	private String password;
+	@DatabaseField(columnName = FIELD_SID)
+	private String sid;
+	@DatabaseField(columnName = FIELD_SMART_PARAMS)
+	private boolean gender; 
+	@DatabaseField(columnName = FIELD_OUT_PARAMS)
+	private int age;
+	@DatabaseField(columnName = FIELD_FOOD_LIST)
+	private int height;
+	@DatabaseField(columnName = FIELD_FOOD_LIST_DESC)
+	private String city;
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int bust;
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int waist;
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int hips;
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int thigh;
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int calf;
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int hipup;
+	@DatabaseField(columnName = FIELD_AVAILABLE_LIST)
+	private String declaration;
+	@DatabaseField(columnName = FIELD_AVAILABLE_LIST)
+	private boolean isPublicAchievement;
+	@DatabaseField(columnName = FIELD_AVAILABLE_LIST)
+	private TasteType taste;
+	@DatabaseField(columnName = FIELD_AVAILABLE_LIST)
+	private String disease;
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int experience;
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int gold;
+	@DatabaseField(columnName = FIELD_OUTSIDE_HISTORY)
+	private int gem;
+	
+	// Non-DB field
+	private double bmi;
+	
+	private LevelType level;
+	
+	private BodyType bodyType;
+
+	private ObjectMapper mapper = new ObjectMapper();
+
+	public UserModel() {
+
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
+	}
+
+	public String getReferalId() {
+		return referalId;
+	}
+
+	public void setReferalId(String referalId) {
+		this.referalId = referalId;
+	}
+
+	public String getNickName() {
+		return nickName;
+	}
+
+	public void setNickName(String nickName) {
+		this.nickName = nickName;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getAvatar() {
+		return avatar;
+	}
+
+	public void setAvatar(String avatar) {
+		this.avatar = avatar;
+	}
+
+	public String getAnimation() {
+		return animation;
+	}
+
+	public void setAnimation(String animation) {
+		this.animation = animation;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getSid() {
+		return sid;
+	}
+
+	public void setSid(String sid) {
+		this.sid = sid;
+	}
+
+	public boolean isGender() {
+		return gender;
+	}
+
+	public void setGender(boolean gender) {
+		this.gender = gender;
+	}
+
+	public int getAge() {
+		return age;
+	}
+
+	public void setAge(int age) {
+		this.age = age;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
+	public void setHeight(int height) {
+		this.height = height;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	public int getBust() {
+		return bust;
+	}
+
+	public void setBust(int bust) {
+		this.bust = bust;
+	}
+
+	public int getWaist() {
+		return waist;
+	}
+
+	public void setWaist(int waist) {
+		this.waist = waist;
+	}
+
+	public int getHips() {
+		return hips;
+	}
+
+	public void setHips(int hips) {
+		this.hips = hips;
+	}
+
+	public int getThigh() {
+		return thigh;
+	}
+
+	public void setThigh(int thigh) {
+		this.thigh = thigh;
+	}
+
+	public int getCalf() {
+		return calf;
+	}
+
+	public void setCalf(int calf) {
+		this.calf = calf;
+	}
+
+	public int getHipup() {
+		return hipup;
+	}
+
+	public void setHipup(int hipup) {
+		this.hipup = hipup;
+	}
+
+	public String getDeclaration() {
+		return declaration;
+	}
+
+	public void setDeclaration(String declaration) {
+		this.declaration = declaration;
+	}
+
+	public boolean isPublicAchievement() {
+		return isPublicAchievement;
+	}
+
+	public void setPublicAchievement(boolean isPublicAchievement) {
+		this.isPublicAchievement = isPublicAchievement;
+	}
+
+	public TasteType getTaste() {
+		return taste;
+	}
+
+	public void setTaste(TasteType taste) {
+		this.taste = taste;
+	}
+
+	public String getDisease() {
+		return disease;
+	}
+
+	public void setDisease(String disease) {
+		this.disease = disease;
+	}
+
+	public int getExperience() {
+		return experience;
+	}
+
+	public void setExperience(int experience) {
+		this.experience = experience;
+	}
+
+	public int getGold() {
+		return gold;
+	}
+
+	public void setGold(int gold) {
+		this.gold = gold;
+	}
+
+	public int getGem() {
+		return gem;
+	}
+
+	public void setGem(int gem) {
+		this.gem = gem;
+	}
+
+	public double getBmi() {
+		return bmi;
+	}
+
+	public void setBmi(double bmi) {
+		this.bmi = bmi;
+	}
+
+	public LevelType getLevel() {
+		return level;
+	}
+
+	public void setLevel(LevelType level) {
+		this.level = level;
+	}
+
+	public BodyType getBodyType() {
+		return bodyType;
+	}
+
+	public void setBodyType(BodyType bodyType) {
+		this.bodyType = bodyType;
+	}
+
+	public ObjectMapper getMapper() {
+		return mapper;
+	}
+
+	public void setMapper(ObjectMapper mapper) {
+		this.mapper = mapper;
+	}
+
+
+
+}

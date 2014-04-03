@@ -1,0 +1,13 @@
+package com.sythealth.fitness;
+
+import cn.jpush.android.api.JPushInterface;
+import android.app.Application;
+
+public class ApplicationEx extends Application {
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        JPushInterface.setDebugMode(true);
+        JPushInterface.init(this);
+    }
+}

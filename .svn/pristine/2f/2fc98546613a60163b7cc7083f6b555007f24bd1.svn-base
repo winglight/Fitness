@@ -1,0 +1,19 @@
+package com.sythealth.fitness.service;
+
+import com.sythealth.fitness.util.AsyncTask;
+
+
+public abstract class MyTask<Params, Result> extends AsyncTask<Params, Integer, Result>{
+
+	private TaskCallBack<Params, Result> callback;
+	
+	public MyTask(TaskCallBack<Params, Result> callback){
+		this.callback = callback;
+	}
+	
+	@Override
+	protected void onPostExecute(Result result) {
+		super.onPostExecute(result);
+		callback.postExecute(result);  
+	}	
+}

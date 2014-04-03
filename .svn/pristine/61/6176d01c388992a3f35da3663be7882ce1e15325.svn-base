@@ -1,0 +1,113 @@
+package com.sythealth.fitness;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.sythealth.custom.fragment.AccountFragment;
+import com.sythealth.custom.fragment.BodyTypeFragment;
+import com.sythealth.custom.fragment.HomeOfMineFragment;
+import com.sythealth.custom.fragment.SickFragment;
+import com.sythealth.custom.fragment.UserInfoFragment;
+import com.sythealth.fitness.util.Utils;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
+import android.widget.RelativeLayout;
+
+public class UserInfoActivity extends BaseActivity {
+	private ViewPager vp;
+	private List<Fragment> fragments = new ArrayList<Fragment>();
+	private ImageView [] imageViews;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_userinfo);
+		fragments.add(UserInfoFragment.newInstance());
+		fragments.add(BodyTypeFragment.newInstance());
+		fragments.add(SickFragment.newInstance());
+		fragments.add(AccountFragment.newInstance());
+		fragments.add(HomeOfMineFragment.newInstance());
+		init();
+		
+	}
+	private void init(){
+		vp = (ViewPager)findViewById(R.id.act_userinfo_viewpager);
+		vp.setAdapter(new MyFragmentAdapter(getSupportFragmentManager()));
+		vp.setCurrentItem(0);
+		vp.setOnPageChangeListener(new GuidePageChangeListener());
+		LinearLayout layout = (LinearLayout)findViewById(R.id.act_userinfo_layout);
+		imageViews = new ImageView[fragments.size()];
+		for (int i = 0; i < imageViews.length; i++) {
+			ImageView iv = new ImageView(this);
+			imageViews[i] = iv;
+			if(i==0){
+				iv.setBackgroundResource(R.drawable.icon_unselected);
+			}else{
+				iv.setBackgroundResource(R.drawable.icon_selected);
+			}
+			LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+			params.setMargins(20, 0, 0, 0);
+			iv.setLayoutParams(params);
+			layout.addView(iv);
+		}
+	}
+	class MyFragmentAdapter extends FragmentPagerAdapter{
+		public MyFragmentAdapter(FragmentManager fm) {
+			super(fm);
+		}
+		@Override
+		public Fragment getItem(int arg0) {
+			return fragments.get(arg0);
+		}
+		@Override
+		public int getCount() {
+			return fragments.size();
+		}		
+	}
+	 /** 指引页面改监听器 */
+    class GuidePageChangeListener implements OnPageChangeListener { 
+    	
+        @Override  
+        public void onPageScrollStateChanged(int arg0) {
+        }  
+  
+        @Override  
+        public void onPageScrolled(int arg0, float arg1, int arg2) {      	
+        }
+		@Override
+		public void onPageSelected(int arg0) {
+			
+			if(arg0>2){
+				arg0 = arg0%fragments.size();
+			}
+			for (int i = 0; i < imageViews.length; i++) {
+				imageViews[arg0].setBackgroundResource(R.drawable.icon_unselected);
+				if(arg0 !=i){
+					imageViews[i].setBackgroundResource(R.drawable.icon_selected);
+				}
+			}
+		}  
+    }
+    @Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if(keyCode == KeyEvent.KEYCODE_BACK){
+			Intent intent = new Intent(this, PersonalHomeActivity.class);
+			startActivity(intent);
+			overridePendingTransition(R.anim.push_left_in,R.anim.push_right_out);
+			finish();
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+}
+

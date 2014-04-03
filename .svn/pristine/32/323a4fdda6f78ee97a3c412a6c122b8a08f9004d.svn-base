@@ -1,0 +1,205 @@
+package com.sythealth.fitness.db;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.Where;
+import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.table.TableUtils;
+import com.sythealth.fitness.db.enumetype.BodyType;
+import com.sythealth.fitness.db.enumetype.LevelType;
+import com.sythealth.fitness.util.DateUtils;
+
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+public class UserDBOpenHelper extends OrmLiteSqliteOpenHelper{
+	
+	public  static final int DATABASE_VERSION = 10;
+	public static final String DATABASE_NAME = "user.db";
+	
+	// we do this so there is only one helper
+	private static UserDBOpenHelper helper = null;
+	
+	private Dao<UserModel, Integer> userDao;
+	private Dao<DiaryModel, Integer> diaryDao;
+	private Dao<FriendModel, Integer> friendDao;
+	private Dao<MedalModel, Integer> medalDao;
+	private Dao<MessageModel, Integer> messageDao;
+	private Dao<PropModel, Integer> propDao;
+	private Dao<SportModel, Integer> sportDao;
+	private Dao<WeightModel, Integer> weightDao;
+	private Dao<RemoteInvokeModel, Integer> rimDao;
+	
+    public UserDBOpenHelper(Context context) {
+    	super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+    
+    public static synchronized UserDBOpenHelper getHelper(Context context) {
+		if (helper == null) {
+			helper = new UserDBOpenHelper(context);
+		}
+		return helper;
+	}
+    
+	@Override
+	public void onCreate(SQLiteDatabase db, ConnectionSource connectionSource) {
+		try {
+			Log.i(UserDBOpenHelper.class.getName(), "onCreate");
+			TableUtils.createTable(connectionSource, UserModel.class);
+			TableUtils.createTable(connectionSource, DiaryModel.class);
+			TableUtils.createTable(connectionSource, FriendModel.class);
+			TableUtils.createTable(connectionSource, MedalModel.class);
+			TableUtils.createTable(connectionSource, MessageModel.class);
+			TableUtils.createTable(connectionSource, PropModel.class);
+			TableUtils.createTable(connectionSource, SportModel.class);
+			TableUtils.createTable(connectionSource, WeightModel.class);
+			TableUtils.createTable(connectionSource, RemoteInvokeModel.class);
+
+			// here we try inserting data in the on-create as a test
+			Dao<UserModel, Integer> dao = getUserDAO();
+			// create some entries in the onCreate
+			 UserModel simple = new UserModel();
+			 simple.setNickName("Test User");
+			 simple.setEmail("test@fsl.com");
+			 simple.setPassword("1243124");
+			 simple.setAge(30);
+			 simple.setAnimation("1.gif");
+			 simple.setAvatar("my.png");
+			 simple.setBeautyWeight(45);
+			 simple.setBodyType(BodyType.FAT);
+			 simple.setCurrentWeight(60);
+			 simple.setDailyInCals(2000);
+			 simple.setDailyOutCals(1500);
+			 simple.setHeight(160);
+			 simple.setPartnerId("");
+			 simple.setPartnerName("");
+			 simple.setPartnerAvatar("");
+			 simple.setPlanBeginDate(new Date());
+			 simple.setPlanEndDate(DateUtils.addDateDays(new Date(), 60));
+			 simple.setPlanBeginWeight(60);
+			 simple.setPlanEndWeight(40);
+			 simple.setStandardWeight(45);
+			 simple.setLevel(LevelType.L1);
+			 
+			dao.create(simple);
+			
+			Log.i(UserDBOpenHelper.class.getName(), "created new entries in onCreate: " + simple.getNickName());
+		} catch (SQLException e) {
+			Log.e(UserDBOpenHelper.class.getName(), "Can't create database", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * This is called when your application is upgraded and it has a higher version number. This allows you to adjust
+	 * the various data to match the new version number.
+	 */
+	@Override
+	public void onUpgrade(SQLiteDatabase db, ConnectionSource connectionSource, int oldVersion, int newVersion) {
+		try {
+			Log.i(UserDBOpenHelper.class.getName(), "onUpgrade");
+			TableUtils.dropTable(connectionSource, UserModel.class, true);
+			TableUtils.dropTable(connectionSource, DiaryModel.class, true);
+			TableUtils.dropTable(connectionSource, FriendModel.class, true);
+			TableUtils.dropTable(connectionSource, MedalModel.class, true);
+			TableUtils.dropTable(connectionSource, MessageModel.class, true);
+			TableUtils.dropTable(connectionSource, PropModel.class, true);
+			TableUtils.dropTable(connectionSource, SportModel.class, true);
+			TableUtils.dropTable(connectionSource, WeightModel.class, true);
+			TableUtils.dropTable(connectionSource, RemoteInvokeModel.class, true);
+			
+			// after we drop the old databases, we create the new ones
+			onCreate(db, connectionSource);
+		} catch (SQLException e) {
+			Log.e(UserDBOpenHelper.class.getName(), "Can't drop databases", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+    public Dao<UserModel, Integer> getUserDAO() throws SQLException{
+    	if(userDao == null){
+    		userDao = getDao(UserModel.class);
+    	}
+    	return userDao;
+    }
+    
+    public Dao<DiaryModel, Integer> getDiaryDAO() throws SQLException{
+    	if(diaryDao == null){
+    		diaryDao = getDao(DiaryModel.class);
+    	}
+    	return diaryDao;
+    }
+    
+    public Dao<FriendModel, Integer> getFriendDAO() throws SQLException{
+    	if(friendDao == null){
+    		friendDao = getDao(FriendModel.class);
+    	}
+    	return friendDao;
+    }
+    
+    public Dao<MedalModel, Integer> getMedalDAO() throws SQLException{
+    	if(medalDao == null){
+    		medalDao = getDao(MedalModel.class);
+    	}
+    	return medalDao;
+    }
+    
+    public Dao<MessageModel, Integer> getMessageDAO() throws SQLException{
+    	if(messageDao == null){
+    		messageDao = getDao(MessageModel.class);
+    	}
+    	return messageDao;
+    }
+    
+    public Dao<PropModel, Integer> getPropDAO() throws SQLException{
+    	if(propDao == null){
+    		propDao = getDao(PropModel.class);
+    	}
+    	return propDao;
+    }
+    
+    public Dao<SportModel, Integer> getSportDAO() throws SQLException{
+    	if(sportDao == null){
+    		sportDao = getDao(SportModel.class);
+    	}
+    	return sportDao;
+    }
+    
+    public Dao<WeightModel, Integer> getWeightDAO() throws SQLException{
+    	if(weightDao == null){
+    		weightDao = getDao(WeightModel.class);
+    	}
+    	return weightDao;
+    }
+    
+    public Dao<RemoteInvokeModel, Integer> getRIMDAO() throws SQLException{
+    	if(rimDao == null){
+    		rimDao = getDao(RemoteInvokeModel.class);
+    	}
+    	return rimDao;
+    }
+    
+    @Override
+	public void close() {
+		super.close();
+		userDao = null;
+		diaryDao = null;
+		friendDao = null;
+		medalDao = null;
+		messageDao = null;
+		propDao = null;
+		sportDao = null;
+		weightDao = null;
+		rimDao = null;
+	}
+}
